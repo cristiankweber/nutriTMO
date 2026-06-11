@@ -1,0 +1,543 @@
+{
+  "capturedAt": "2026-06-11T03:07:06.659Z",
+  "baseUrl": "http://localhost:3000",
+  "artifacts": [
+    {
+      "id": "01",
+      "label": "login-desktop",
+      "filename": "01-login-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/01-login-desktop.png",
+      "size": 31135,
+      "notes": "Estado inicial para usuario nao autenticado.",
+      "health": {
+        "url": "http://localhost:3000/login",
+        "title": "NutriTMO",
+        "h1": "NutriTMO",
+        "bodySample": "NT\nNutriTMO\n\nDocumentacao nutricional estruturada para unidade TMO.\n\nEmail\nSenha\nEntrar\nUsuarios demo: admin, nutricao, enfermagem, medico ou auditor em @nutritmo.local. Senha: nutritmo123.",
+        "bodyLength": 189,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 800,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 0,
+          "buttons": 1,
+          "inputs": 3,
+          "tables": 0,
+          "cards": 6
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "02",
+      "label": "dashboard-desktop",
+      "filename": "02-dashboard-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/02-dashboard-desktop.png",
+      "size": 117631,
+      "notes": "Dashboard apos login admin.",
+      "health": {
+        "url": "http://localhost:3000/dashboard",
+        "title": "NutriTMO",
+        "h1": "Dashboard da unidade",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nDashboard da unidade\n\nLeitos TMO, ingesta estimada do dia e pendencias de revisao humana.\n\nRegistrar refeicao\nLEITOS OCUPADOS\n5/10\nAdmissoes ativas no TMO\nALERTAS NUTRICIONAIS\n2\nBaixa ingesta ou risco explicito\nREVISOES ABERTAS\n1\nFoto, confianca ou correcao\nPENDENCIAS DO DIA\n2\nCritica ausente ou incompleta\nREGISTROS HOJE\n13\nRefeicoes e suplementos\nTMO-01\nTMO-001\nAtenção\nD+ / TRANSPLANTE\nD+5\nDIETA ATUAL\nDieta oral hospitalar\nMETA CALORICA\n1507 kcal\n84%\nmeta 1800 kcal\nMETA PROTEICA\n40.0 g\n50%\nmeta 80.0 g\nLanche da tarde\nAlmoço\nJantar\nCafé da manhã\nMenor ingesta hoje: janta.\nMenor proteina hoje: janta.\nTMO-02\nTMO-002\nBaixa ingesta\nD+ / TRANSPLANTE\nD-2\nDIETA ATUAL\nDieta branda\nMETA CALORICA\n543 kcal\n33%\nmeta 1650 kcal\nMETA PROTEICA\n39.1 g",
+        "bodyLength": 1915,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 1764,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 15,
+          "buttons": 1,
+          "inputs": 0,
+          "tables": 0,
+          "cards": 64
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "03",
+      "label": "patient-detail-desktop",
+      "filename": "03-patient-detail-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/03-patient-detail-desktop.png",
+      "size": 117450,
+      "notes": "Detalhe de admissao/paciente demo.",
+      "health": {
+        "url": "http://localhost:3000/patients/cmq8x0gfm000ytki8u16m2516",
+        "title": "NutriTMO",
+        "h1": "TMO-01 · TMO-001",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nTMO-01 · TMO-001\n\nAlogênico · D+5 · admissao demo em 30/05/2026\n\nRegistrar refeicao\nPrescricao ativa\nDieta oral hospitalar · Normal\n1800 kcal/dia · 80.0 g proteina/dia\nSuplemento oral hipercalorico 2x/dia\nIngesta de hoje\n\nTotais do resumo diario, com correcoes revisadas quando disponiveis.\n\nAtenção\nMETA CALORICA\n1507 kcal\n84%\nmeta 1800 kcal\nMETA PROTEICA\n40.0 g\n50%\nmeta 80.0 g\nObservacoes clinicas\n\nNenhuma observacao clinica registrada no demo.\n\nEvolucao diaria\nDATA\tKCAL\t% META KCAL\tPROTEINA\t% META PROTEINA\tALERTA\n11/06/2026\t1507 kcal\t84%\t40.0 g\t50%\tAtenção\nDistribuicao por refeicao hoje\nCafe da manha\n257 kcal · 7.0 g proteina\nAlmoco\n340 kcal · 19.0 g proteina\nLanche da tarde\n700 kcal · 10.0 g proteina\nJanta\n210 kcal · 4.0 g proteina\n",
+        "bodyLength": 1847,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 2161,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 12,
+          "buttons": 5,
+          "inputs": 13,
+          "tables": 1,
+          "cards": 44
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "04",
+      "label": "meal-registration-desktop",
+      "filename": "04-meal-registration-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/04-meal-registration-desktop.png",
+      "size": 107300,
+      "notes": "Registro de refeicao com itens e totais.",
+      "health": {
+        "url": "http://localhost:3000/meals/new",
+        "title": "NutriTMO",
+        "h1": "Registro de refeicao",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nRegistro de refeicao\n\nSelecione itens servidos, fotos pre/pos e percentual ingerido por item.\n\nPaciente/leito\nTMO-01 - TMO-001 (D+5)\nTMO-02 - TMO-002 (D-2)\nTMO-03 - TMO-003 (D+3)\nTMO-04 - TMO-004 (D+4)\nTMO-05 - TMO-005 (D+5)\nData\nRefeicao\nCafé da manhã\nLanche da manhã\nAlmoço\nLanche da tarde\nJantar\nCeia\nSuplemento\nOutro\nQualidade da foto\nAdequada\nInadequada\nNão avaliada\nConfianca do registro\nAlta\nMédia\nBaixa\nNão aplicável\nObservacoes\nFoto pre-refeicao\nPossivel identificador visivel\nFoto pos-refeicao\nPossivel identificador visivel\nItens servidos\nItem\nATALHOS\nAlmoco/jantar\nSuplemento\nLanche\nINGESTA RAPIDA\n0%\n25%\n50%\n75%\n100%\nPreparacao\nAlmoco demo\nArroz\nBebida lactea\nCafe da manha demo\nCarne moida\nFeijao\nFrango grelhado\nFruta\nJanta de",
+        "bodyLength": 1409,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 1197,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 13,
+          "inputs": 16,
+          "tables": 0,
+          "cards": 29
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "05",
+      "label": "review-queue-desktop",
+      "filename": "05-review-queue-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/05-review-queue-desktop.png",
+      "size": 107622,
+      "notes": "Fila de revisao humana.",
+      "health": {
+        "url": "http://localhost:3000/review",
+        "title": "NutriTMO",
+        "h1": "Revisao humana",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nRevisao humana\n\nRefeicoes com baixa confianca, foto inadequada ou registro parcial.\n\nTMO-03 - TMO-003 · Almoço\nCriado por Nutricionista Demo\nFoto inadequada\nBaixa confianca\nAdequada\nInadequada\nNão avaliada\nAlta\nMédia\nBaixa\nNão aplicável\nPre-refeicao\nPos-refeicao\nArroz\n130 kcal servidas · 2.5 g proteina servida\n0%\n25%\n50%\n75%\n100%\nFeijao\n95 kcal servidas · 6.0 g proteina servida\n0%\n25%\n50%\n75%\n100%\nFrango grelhado\n165 kcal servidas · 31.0 g proteina servida\n0%\n25%\n50%\n75%\n100%\nLegumes cozidos\n60 kcal servidas · 2.0 g proteina servida\n0%\n25%\n50%\n75%\n100%\nSalvar revisao",
+        "bodyLength": 729,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 902,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 11,
+          "buttons": 2,
+          "inputs": 14,
+          "tables": 0,
+          "cards": 21
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "06",
+      "label": "reports-desktop",
+      "filename": "06-reports-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/06-reports-desktop.png",
+      "size": 112774,
+      "notes": "Relatorio nutricional e textos copiaveis.",
+      "health": {
+        "url": "http://localhost:3000/reports",
+        "title": "NutriTMO",
+        "h1": "Relatorio nutricional",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nRelatorio nutricional\n\nResumo por paciente e periodo, com texto copiavel para prontuario.\n\nTMO-01 - TMO-001\nTMO-02 - TMO-002\nTMO-03 - TMO-003\nTMO-04 - TMO-004\nTMO-05 - TMO-005\nGerar\nResumo de 11/06/2026\n\n1507 kcal · 40.0 g proteina\n\nAtenção\nMETA CALORICA\n1507 kcal\n84%\nmeta 1800 kcal\nMETA PROTEICA\n40.0 g\n50%\nmeta 80.0 g\nRelatorio por refeicao\n\nDistribuicao diaria de kcal, carboidratos, proteina e lipidios por refeicao registrada.\n\nREFEICAO\tKCAL\t% KCAL DO DIA\tCHO (G)\tPTN (G)\tLIP (G)\tOBSERVACAO\nCafe da manha\t257\t17%\t31.0\t7.0\t11.0\t\nregistro completo\n\nAlmoco\t340\t23%\t44.0\t19.0\t6.0\t\nmaior aporte proteico\n\nLanche da tarde\t700\t46%\t98.0\t10.0\t30.0\t\nmaior aporte calorico\n\nJanta\t210\t14%\t46.0\t4.0\t2.0\t\nrefeicao revisada\nmenor kcal do dia\nmenor proteina",
+        "bodyLength": 1023,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 1152,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 4,
+          "inputs": 5,
+          "tables": 1,
+          "cards": 22
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "07",
+      "label": "report-copy-feedback-desktop",
+      "filename": "07-report-copy-feedback-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/07-report-copy-feedback-desktop.png",
+      "size": 141991,
+      "notes": "Feedback apos acao de copiar texto do relatorio.",
+      "health": {
+        "url": "http://localhost:3000/reports",
+        "title": "NutriTMO",
+        "h1": "Relatorio nutricional",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nRelatorio nutricional\n\nResumo por paciente e periodo, com texto copiavel para prontuario.\n\nTMO-01 - TMO-001\nTMO-02 - TMO-002\nTMO-03 - TMO-003\nTMO-04 - TMO-004\nTMO-05 - TMO-005\nGerar\nResumo de 11/06/2026\n\n1507 kcal · 40.0 g proteina\n\nAtenção\nMETA CALORICA\n1507 kcal\n84%\nmeta 1800 kcal\nMETA PROTEICA\n40.0 g\n50%\nmeta 80.0 g\nRelatorio por refeicao\n\nDistribuicao diaria de kcal, carboidratos, proteina e lipidios por refeicao registrada.\n\nREFEICAO\tKCAL\t% KCAL DO DIA\tCHO (G)\tPTN (G)\tLIP (G)\tOBSERVACAO\nCafe da manha\t257\t17%\t31.0\t7.0\t11.0\t\nregistro completo\n\nAlmoco\t340\t23%\t44.0\t19.0\t6.0\t\nmaior aporte proteico\n\nLanche da tarde\t700\t46%\t98.0\t10.0\t30.0\t\nmaior aporte calorico\n\nJanta\t210\t14%\t46.0\t4.0\t2.0\t\nrefeicao revisada\nmenor kcal do dia\nmenor proteina",
+        "bodyLength": 1024,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 1152,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 4,
+          "inputs": 5,
+          "tables": 1,
+          "cards": 22
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "08",
+      "label": "audit-desktop",
+      "filename": "08-audit-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/08-audit-desktop.png",
+      "size": 118388,
+      "notes": "Auditoria visivel para admin.",
+      "health": {
+        "url": "http://localhost:3000/audit",
+        "title": "NutriTMO",
+        "h1": "Auditoria",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nAuditoria\n\nHistorico de login, exportacoes e alteracoes assistenciais relevantes.\n\nDATA/HORA\tUSUARIO\tACAO\tENTIDADE\tANTES\tDEPOIS\n11/06/2026, 00:06\tAdmin NutriTMO\tEXPORT\tNutritionReport\t\n-\n\t\n{\n  \"text\": \"Resumo nutricional do periodo selecionado: ingesta oral registrada de 1507 kcal e 40.0 g de proteina, correspondendo a 84% da meta calorica e 50% da meta proteica. Dados revisados foram utilizados quando disponiveis. Alerta amarelo no resumo nutricional. Registros do periodo: 4/4 refeicao(oes) completas e 1/4 revisada(s) pela nutricao. Sugere-se reavaliacao nutricional conforme julgamento clinico.\"\n}\n\n11/06/2026, 00:06\tAdmin NutriTMO\tLOGIN\tUser\t\n-\n\t\n{\n  \"role\": \"ADMIN\",\n  \"email\": \"admin@nutritmo.local\"\n}\n\n11/06/2026, 00:05\tAuditoria Demo\tLO",
+        "bodyLength": 6223,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 1207,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 1,
+          "inputs": 1,
+          "tables": 1,
+          "cards": 17
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "09",
+      "label": "menu-desktop",
+      "filename": "09-menu-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/09-menu-desktop.png",
+      "size": 103759,
+      "notes": "Cardapio e preparacoes.",
+      "health": {
+        "url": "http://localhost:3000/menu",
+        "title": "NutriTMO",
+        "h1": "Cardapio e preparacoes",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nCardapio e preparacoes\n\nCadastro de porcoes padrao, kcal, CHO, proteina, lipidio e sodio por porcao.\n\nCarboidrato\nProteína\nLeguminosa\nVegetal\nFruta\nSobremesa\nSuplemento\nBebida\nOutro\nAdicionar preparacao\nCarboidrato\nProteína\nLeguminosa\nVegetal\nFruta\nSobremesa\nSuplemento\nBebida\nOutro\nAtivo\nSalvar\nCarboidrato\nProteína\nLeguminosa\nVegetal\nFruta\nSobremesa\nSuplemento\nBebida\nOutro\nAtivo\nSalvar\nCarboidrato\nProteína\nLeguminosa\nVegetal\nFruta\nSobremesa\nSuplemento\nBebida\nOutro\nAtivo\nSalvar\nCarboidrato\nProteína\nLeguminosa\nVegetal\nFruta\nSobremesa\nSuplemento\nBebida\nOutro\nAtivo\nSalvar\nCarboidrato\nProteína\nLeguminosa\nVegetal\nFruta\nSobremesa\nSuplemento\nBebida\nOutro\nAtivo\nSalvar\nCarboidrato\nProteína\nLeguminosa\nVegetal\nFruta\nSobremesa\nSuplemento\nBebida\n",
+        "bodyLength": 1670,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 1585,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 16,
+          "inputs": 164,
+          "tables": 0,
+          "cards": 150
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "10",
+      "label": "prescriptions-desktop",
+      "filename": "10-prescriptions-desktop.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/10-prescriptions-desktop.png",
+      "size": 101782,
+      "notes": "Prescricoes nutricionais.",
+      "health": {
+        "url": "http://localhost:3000/prescriptions",
+        "title": "NutriTMO",
+        "h1": "Prescricao nutricional",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nAdmin NutriTMO\nAdmin\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nPrescricao nutricional\n\nMetas diarias, consistencia, restricoes e plano de suplementos.\n\nTMO-01 - TMO-001\nTMO-02 - TMO-002\nTMO-03 - TMO-003\nTMO-04 - TMO-004\nTMO-05 - TMO-005\nRevisada\nCriar prescricao\nTMO-01 - TMO-001\n11/06/2026 · Dieta oral hospitalar · Normal\n1800 kcal\n80.0 g proteina\nRestricoes: Neutropenia: alimentos higienizados conforme rotina.\nSuplementos: Suplemento oral hipercalorico 2x/dia\nCriado por: Nutricionista Demo\nEditar prescricao\nTMO-02 - TMO-002\n11/06/2026 · Dieta branda · Normal\n1650 kcal\n70.0 g proteina\nRestricoes: Nao registradas\nSuplementos: Conforme aceitacao\nCriado por: Nutricionista Demo\nEditar prescricao\nTMO-03 - TMO-003\n11/06/2026 · Dieta oral hospitalar · Pastosa\n1900 kcal\n90.0 g proteina\nRestricoes: Nao registr",
+        "bodyLength": 985,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 1099,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 5,
+          "inputs": 45,
+          "tables": 0,
+          "cards": 53
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "11",
+      "label": "dashboard-mobile",
+      "filename": "11-dashboard-mobile.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/11-dashboard-mobile.png",
+      "size": 51678,
+      "notes": "Dashboard em viewport mobile.",
+      "health": {
+        "url": "http://localhost:3000/dashboard",
+        "title": "NutriTMO",
+        "h1": "Dashboard da unidade",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nDashboard da unidade\n\nLeitos TMO, ingesta estimada do dia e pendencias de revisao humana.\n\nRegistrar refeicao\nLEITOS OCUPADOS\n5/10\nAdmissoes ativas no TMO\nALERTAS NUTRICIONAIS\n2\nBaixa ingesta ou risco explicito\nREVISOES ABERTAS\n1\nFoto, confianca ou correcao\nPENDENCIAS DO DIA\n2\nCritica ausente ou incompleta\nREGISTROS HOJE\n13\nRefeicoes e suplementos\nTMO-01\nTMO-001\nAtenção\nD+ / TRANSPLANTE\nD+5\nDIETA ATUAL\nDieta oral hospitalar\nMETA CALORICA\n1507 kcal\n84%\nmeta 1800 kcal\nMETA PROTEICA\n40.0 g\n50%\nmeta 80.0 g\nLanche da tarde\nAlmoço\nJantar\nCafé da manhã\nMenor ingesta hoje: janta.\nMenor proteina hoje: janta.\nTMO-02\nTMO-002\nBaixa ingesta\nD+ / TRANSPLANTE\nD-2\nDIETA ATUAL\nDieta branda\nMETA CALORICA\n543 kcal\n33%\nmeta 1650 kcal\nMETA PROTEICA\n39.1 g\n56%\nmeta 70.0 g\nSupl",
+        "bodyLength": 1894,
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "scroll": {
+          "width": 390,
+          "height": 4337,
+          "clientWidth": 390,
+          "clientHeight": 844,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 15,
+          "buttons": 1,
+          "inputs": 1,
+          "tables": 0,
+          "cards": 64
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "12",
+      "label": "meal-registration-mobile",
+      "filename": "12-meal-registration-mobile.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/12-meal-registration-mobile.png",
+      "size": 50834,
+      "notes": "Registro de refeicao em viewport mobile.",
+      "health": {
+        "url": "http://localhost:3000/meals/new",
+        "title": "NutriTMO",
+        "h1": "Registro de refeicao",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nRegistro de refeicao\n\nSelecione itens servidos, fotos pre/pos e percentual ingerido por item.\n\nPaciente/leito\nTMO-01 - TMO-001 (D+5)\nTMO-02 - TMO-002 (D-2)\nTMO-03 - TMO-003 (D+3)\nTMO-04 - TMO-004 (D+4)\nTMO-05 - TMO-005 (D+5)\nData\nRefeicao\nCafé da manhã\nLanche da manhã\nAlmoço\nLanche da tarde\nJantar\nCeia\nSuplemento\nOutro\nQualidade da foto\nAdequada\nInadequada\nNão avaliada\nConfianca do registro\nAlta\nMédia\nBaixa\nNão aplicável\nObservacoes\nFoto pre-refeicao\nPossivel identificador visivel\nFoto pos-refeicao\nPossivel identificador visivel\nItens servidos\nItem\nATALHOS\nAlmoco/jantar\nSuplemento\nLanche\nINGESTA RAPIDA\n0%\n25%\n50%\n75%\n100%\nPreparacao\nAlmoco demo\nArroz\nBebida lactea\nCafe da manha demo\nCarne moida\nFeijao\nFrango grelhado\nFruta\nJanta demo\nLanche demo\nLegume",
+        "bodyLength": 1388,
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "scroll": {
+          "width": 390,
+          "height": 2558,
+          "clientWidth": 390,
+          "clientHeight": 844,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 13,
+          "inputs": 16,
+          "tables": 0,
+          "cards": 29
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "13",
+      "label": "reports-mobile",
+      "filename": "13-reports-mobile.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/13-reports-mobile.png",
+      "size": 59241,
+      "notes": "Relatorio em viewport mobile.",
+      "health": {
+        "url": "http://localhost:3000/reports",
+        "title": "NutriTMO",
+        "h1": "Relatorio nutricional",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nRelatorio nutricional\n\nResumo por paciente e periodo, com texto copiavel para prontuario.\n\nTMO-01 - TMO-001\nTMO-02 - TMO-002\nTMO-03 - TMO-003\nTMO-04 - TMO-004\nTMO-05 - TMO-005\nGerar\nResumo de 11/06/2026\n\n1507 kcal · 40.0 g proteina\n\nAtenção\nMETA CALORICA\n1507 kcal\n84%\nmeta 1800 kcal\nMETA PROTEICA\n40.0 g\n50%\nmeta 80.0 g\nRelatorio por refeicao\n\nDistribuicao diaria de kcal, carboidratos, proteina e lipidios por refeicao registrada.\n\nREFEICAO\tKCAL\t% KCAL DO DIA\tCHO (G)\tPTN (G)\tLIP (G)\tOBSERVACAO\nCafe da manha\t257\t17%\t31.0\t7.0\t11.0\t\nregistro completo\n\nAlmoco\t340\t23%\t44.0\t19.0\t6.0\t\nmaior aporte proteico\n\nLanche da tarde\t700\t46%\t98.0\t10.0\t30.0\t\nmaior aporte calorico\n\nJanta\t210\t14%\t46.0\t4.0\t2.0\t\nrefeicao revisada\nmenor kcal do dia\nmenor proteina do dia\n\nTotal\t1507\t1",
+        "bodyLength": 1002,
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "scroll": {
+          "width": 390,
+          "height": 1816,
+          "clientWidth": 390,
+          "clientHeight": 844,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 4,
+          "inputs": 5,
+          "tables": 1,
+          "cards": 22
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "14",
+      "label": "audit-mobile-admin",
+      "filename": "14-audit-mobile-admin.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/14-audit-mobile-admin.png",
+      "size": 58291,
+      "notes": "Auditoria em viewport mobile com admin.",
+      "health": {
+        "url": "http://localhost:3000/audit",
+        "title": "NutriTMO",
+        "h1": "Auditoria",
+        "bodySample": "NT\nNutriTMO\nDocumentacao nutricional auditavel\nUnidade\nPacientes\nCardapio\nPrescricoes\nRegistrar refeicao\nRevisao\nResumo\nAuditoria\nAuditoria\n\nHistorico de login, exportacoes e alteracoes assistenciais relevantes.\n\nDATA/HORA\tUSUARIO\tACAO\tENTIDADE\tANTES\tDEPOIS\n11/06/2026, 00:06\tAdmin NutriTMO\tEXPORT\tNutritionReport\t\n-\n\t\n{\n  \"text\": \"Resumo nutricional do periodo selecionado: ingesta oral registrada de 1507 kcal e 40.0 g de proteina, correspondendo a 84% da meta calorica e 50% da meta proteica. Dados revisados foram utilizados quando disponiveis. Alerta amarelo no resumo nutricional. Registros do periodo: 4/4 refeicao(oes) completas e 1/4 revisada(s) pela nutricao. Sugere-se reavaliacao nutricional conforme julgamento clinico.\"\n}\n\n11/06/2026, 00:06\tAdmin NutriTMO\tLOGIN\tUser\t\n-\n\t\n{\n  \"role\": \"ADMIN\",\n  \"email\": \"admin@nutritmo.local\"\n}\n\n11/06/2026, 00:05\tAuditoria Demo\tLOGIN\tAudit\t\n-\n\t\n{\n  \"n",
+        "bodyLength": 6202,
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "scroll": {
+          "width": 390,
+          "height": 1297,
+          "clientWidth": 390,
+          "clientHeight": 844,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 9,
+          "buttons": 1,
+          "inputs": 1,
+          "tables": 1,
+          "cards": 17
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    },
+    {
+      "id": "15",
+      "label": "audit-forbidden-nutricao",
+      "filename": "15-audit-forbidden-nutricao.png",
+      "filepath": "/Users/cristiankweber/Desktop/Nutrição/docs/product-audit/screenshots/15-audit-forbidden-nutricao.png",
+      "size": 101341,
+      "notes": "Acesso direto a auditoria por perfil sem permissao.",
+      "health": {
+        "url": "http://localhost:3000/audit",
+        "title": "",
+        "h1": "This page couldn’t load",
+        "bodySample": "This page couldn’t load\n\nA server error occurred. Reload to try again.\n\nReload\n\nERROR 3223404026",
+        "bodyLength": 96,
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "scroll": {
+          "width": 1280,
+          "height": 800,
+          "clientWidth": 1280,
+          "clientHeight": 800,
+          "hasHorizontalOverflow": false
+        },
+        "controls": {
+          "links": 0,
+          "buttons": 1,
+          "inputs": 0,
+          "tables": 0,
+          "cards": 0
+        },
+        "visibleNextOverlay": false,
+        "exactInternalServerError": false
+      }
+    }
+  ],
+  "consoleEvents": [
+    {
+      "page": "http://localhost:3000/audit",
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "page": "http://localhost:3000/audit",
+      "type": "pageerror",
+      "text": "Perfil sem permissao para auditoria."
+    }
+  ]
+}

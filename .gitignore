@@ -20,8 +20,25 @@
 # production
 /build
 
+# local uploads and demo storage
+/storage/*
+!/storage/.gitkeep
+!/storage/images/
+/storage/images/*
+!/storage/images/.gitkeep
+/uploads/*
+!/uploads/.gitkeep
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+
+# local learning-log render previews
+/outputs/codex-learning-log-table/*preview*.png
+
 # misc
 .DS_Store
+**/.DS_Store
 *.pem
 
 # debug
@@ -32,6 +49,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local assistant permissions
+.claude/settings.local.json
 
 # vercel
 .vercel
@@ -39,3 +60,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma

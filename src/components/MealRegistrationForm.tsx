@@ -173,7 +173,9 @@ export function MealRegistrationForm({
   };
 
   return (
-    <form action={action} className="space-y-5 rounded-md border border-stone-200 bg-white p-4">
+    <form action={action} className="space-y-5 rounded-md border border-stone-200 bg-white p-4 pb-36 shadow-sm shadow-stone-200/50 lg:pb-4">
+      <MobileStickyTotals totals={totals} itemCount={rows.length} />
+
       <div className="grid gap-4 md:grid-cols-4">
         <label className="space-y-1 md:col-span-2">
           <span className="text-sm font-medium">Paciente/leito</span>
@@ -229,14 +231,14 @@ export function MealRegistrationForm({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <label className="space-y-2 rounded-md border border-stone-200 p-3">
+        <label className="space-y-2 rounded-md border border-stone-200 bg-stone-50/70 p-3">
           <span className="block text-sm font-medium">Foto pre-refeicao</span>
           <input name="preMealImage" type="file" accept="image/*" capture="environment" className="w-full text-sm" />
           <span className="flex items-center gap-2 text-xs text-stone-600">
             <input name="preMealImageIdentifier" type="checkbox" className="h-4 w-4" /> Possivel identificador visivel
           </span>
         </label>
-        <label className="space-y-2 rounded-md border border-stone-200 p-3">
+        <label className="space-y-2 rounded-md border border-stone-200 bg-stone-50/70 p-3">
           <span className="block text-sm font-medium">Foto pos-refeicao</span>
           <input name="postMealImage" type="file" accept="image/*" capture="environment" className="w-full text-sm" />
           <span className="flex items-center gap-2 text-xs text-stone-600">
@@ -253,14 +255,14 @@ export function MealRegistrationForm({
           </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 rounded-md border border-stone-200 bg-stone-50 p-3">
+        <div className="flex flex-wrap items-center gap-2 rounded-md border border-stone-200 bg-stone-50/80 p-3">
           <span className="mr-1 text-xs font-semibold uppercase text-stone-500">Atalhos</span>
           {mealPresets.map((preset) => (
             <button
               key={preset.label}
               type="button"
               onClick={() => applyMealPreset(preset)}
-              className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 hover:bg-stone-100"
+              className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 transition-colors hover:bg-stone-100"
             >
               {preset.label}
             </button>
@@ -274,7 +276,7 @@ export function MealRegistrationForm({
               key={percentOption}
               type="button"
               onClick={() => applyConsumedPercentToAllRows(percentOption)}
-              className="rounded-md border border-stone-300 px-3 py-1.5 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+              className="rounded-md border border-stone-300 bg-white px-3 py-1.5 text-sm font-semibold text-stone-700 transition-colors hover:bg-stone-50"
             >
               {consumedPercentLabels[percentOption]}
             </button>
@@ -290,7 +292,7 @@ export function MealRegistrationForm({
           const servedCarbs = food ? (food.carbsPerPortion ?? 0) * multiplier : 0;
           const servedFat = food ? (food.fatPerPortion ?? 0) * multiplier : 0;
           return (
-            <div key={row.localId} className="grid gap-3 rounded-md border border-stone-200 p-3 md:grid-cols-[2fr_1fr_1fr_2fr_1.5fr_auto]">
+            <div key={row.localId} className="grid gap-3 rounded-md border border-stone-200 bg-white p-3 shadow-sm shadow-stone-100/70 md:grid-cols-[2fr_1fr_1fr_2fr_1.5fr_auto]">
               <label className="space-y-1">
                 <span className="text-xs font-medium text-stone-600">Preparacao</span>
                 <select
@@ -346,7 +348,7 @@ export function MealRegistrationForm({
                   className="w-full rounded-md border border-stone-300 px-3 py-2"
                 />
               </label>
-              <div className="rounded-md bg-stone-50 px-3 py-2 text-sm text-stone-700">
+              <div className="rounded-md border border-stone-200 bg-stone-50/80 px-3 py-2 text-sm text-stone-700">
                 <div>{servedKcal.toFixed(0)} kcal servidas</div>
                 <div>{servedProtein.toFixed(1)} g proteina servida</div>
                 <div>{servedCarbs.toFixed(1)} g CHO servidos</div>
@@ -359,7 +361,7 @@ export function MealRegistrationForm({
               <button
                 type="button"
                 onClick={() => setRows((current) => current.filter((item) => item.localId !== row.localId))}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-300 text-stone-600 hover:bg-stone-50"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-stone-300 bg-white text-stone-600 transition-colors hover:bg-stone-50"
                 title="Remover item"
               >
                 <Trash2 className="h-4 w-4" />
@@ -369,7 +371,7 @@ export function MealRegistrationForm({
         })}
       </div>
 
-      <div className="grid gap-3 rounded-md bg-emerald-50 p-4 text-sm md:grid-cols-4">
+      <div className="grid gap-3 rounded-md border border-emerald-100 bg-emerald-50/90 p-4 text-sm shadow-sm shadow-emerald-100/60 md:grid-cols-4">
         <div>
           <span className="block text-emerald-900/70">Kcal servidas</span>
           <strong className="text-lg text-emerald-950">{totals.servedKcal.toFixed(0)}</strong>
@@ -405,13 +407,57 @@ export function MealRegistrationForm({
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <button name="intent" value="finalize" className="rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">
+        <button name="intent" value="finalize" className="w-full rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 sm:w-auto">
           Finalizar
         </button>
-        <button name="intent" value="review" className="rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold hover:bg-stone-50">
+        <button name="intent" value="review" className="w-full rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-semibold transition-colors hover:bg-stone-50 sm:w-auto">
           Marcar para revisao da nutricao
         </button>
       </div>
     </form>
+  );
+}
+
+function MobileStickyTotals({
+  totals,
+  itemCount,
+}: {
+  totals: {
+    consumedKcal: number;
+    consumedProtein: number;
+    consumedCarbs: number;
+    consumedFat: number;
+  };
+  itemCount: number;
+}) {
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-emerald-200 bg-white/95 px-3 py-3 shadow-lg shadow-stone-400/20 backdrop-blur lg:hidden" aria-live="polite">
+      <div className="mx-auto max-w-7xl">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold uppercase text-stone-500">Resumo da ingesta</div>
+            <div className="text-xs text-stone-500">{itemCount} item(ns)</div>
+          </div>
+          <button name="intent" value="finalize" className="rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white">
+            Finalizar
+          </button>
+        </div>
+        <div className="grid grid-cols-4 gap-2 text-center text-xs">
+          <MobileTotal label="Kcal" value={totals.consumedKcal.toFixed(0)} />
+          <MobileTotal label="PTN" value={`${totals.consumedProtein.toFixed(1)} g`} />
+          <MobileTotal label="CHO" value={`${totals.consumedCarbs.toFixed(1)} g`} />
+          <MobileTotal label="LIP" value={`${totals.consumedFat.toFixed(1)} g`} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileTotal({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md bg-emerald-50 px-2 py-1.5">
+      <div className="font-semibold text-emerald-950">{value}</div>
+      <div className="text-[10px] font-semibold uppercase text-emerald-900/70">{label}</div>
+    </div>
   );
 }

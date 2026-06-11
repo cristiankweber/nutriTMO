@@ -1,0 +1,321 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  NUTRICAO
+  ENFERMAGEM
+  MEDICO
+  AUDITOR
+}
+
+enum Sex {
+  FEMININO
+  MASCULINO
+  OUTRO
+  NAO_INFORMADO
+}
+
+enum TransplantType {
+  AUTOLOGO
+  ALOGENICO
+  HAPLOIDENTICO
+  CORDONAL
+  NAO_INFORMADO
+}
+
+enum FoodCategory {
+  CARBOIDRATO
+  PROTEINA
+  LEGUMINOSA
+  VEGETAL
+  FRUTA
+  SOBREMESA
+  SUPLEMENTO
+  BEBIDA
+  OUTRO
+}
+
+enum MealType {
+  CAFE_MANHA
+  LANCHE_MANHA
+  ALMOCO
+  LANCHE_TARDE
+  JANTAR
+  CEIA
+  SUPLEMENTO
+  OUTRO
+}
+
+enum MealStatus {
+  PLANEJADA
+  SERVIDA
+  PARCIALMENTE_REGISTRADA
+  FINALIZADA
+  REVISADA
+  CANCELADA
+}
+
+enum ImageQuality {
+  ADEQUADA
+  INADEQUADA
+  NAO_AVALIADA
+}
+
+enum Confidence {
+  ALTA
+  MEDIA
+  BAIXA
+  NAO_APLICAVEL
+}
+
+enum ConsumedPercent {
+  ZERO
+  TWENTY_FIVE
+  FIFTY
+  SEVENTY_FIVE
+  ONE_HUNDRED
+}
+
+enum AlertLevel {
+  VERDE
+  AMARELO
+  LARANJA
+  VERMELHO
+  CINZA
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  REVIEW
+  LOGIN
+  EXPORT
+}
+
+enum ImageAssetType {
+  PRE_MEAL
+  POST_MEAL
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  prescriptionsCreated  NutritionPrescription[] @relation("PrescriptionCreatedBy")
+  prescriptionsReviewed NutritionPrescription[] @relation("PrescriptionReviewedBy")
+  mealsCreated          Meal[]                  @relation("MealCreatedBy")
+  mealsReviewed         Meal[]                  @relation("MealReviewedBy")
+  imagesUploaded        ImageAsset[]
+  auditLogs             AuditLog[]
+}
+
+model Patient {
+  id           String    @id @default(cuid())
+  hospitalCode String?   @unique
+  internalCode String    @unique
+  displayName  String?
+  birthDate    DateTime?
+  sex          Sex?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  admissions Admission[]
+}
+
+model Bed {
+  id     String  @id @default(cuid())
+  name   String  @unique
+  unit   String
+  active Boolean @default(true)
+
+  admissions Admission[]
+}
+
+model Admission {
+  id             String         @id @default(cuid())
+  patientId      String
+  bedId          String
+  admissionDate  DateTime
+  dischargeDate  DateTime?
+  transplantType TransplantType @default(NAO_INFORMADO)
+  transplantDay  String?
+  clinicalNotes  String?
+  active         Boolean        @default(true)
+
+  patient       Patient                 @relation(fields: [patientId], references: [id])
+  bed           Bed                     @relation(fields: [bedId], references: [id])
+  prescriptions NutritionPrescription[]
+  meals         Meal[]
+  summaries     NutritionDailySummary[]
+
+  @@index([patientId])
+  @@index([bedId])
+  @@index([active])
+}
+
+model NutritionPrescription {
+  id               String   @id @default(cuid())
+  admissionId      String
+  date             DateTime
+  dietType         String
+  consistency      String
+  restrictions     String?
+  kcalTarget       Float
+  proteinTarget    Float
+  fluidRestriction String?
+  supplementsPlan  String?
+  createdById      String
+  reviewedById     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  admission  Admission @relation(fields: [admissionId], references: [id])
+  createdBy  User      @relation("PrescriptionCreatedBy", fields: [createdById], references: [id])
+  reviewedBy User?     @relation("PrescriptionReviewedBy", fields: [reviewedById], references: [id])
+
+  @@index([admissionId, date])
+}
+
+model FoodItem {
+  id                   String       @id @default(cuid())
+  name                 String
+  category             FoodCategory
+  standardPortionGrams Float
+  kcalPerPortion       Float
+  proteinPerPortion    Float
+  carbsPerPortion      Float?
+  fatPerPortion        Float?
+  sodiumMgPerPortion   Float?
+  active               Boolean      @default(true)
+
+  mealItems MealItem[]
+}
+
+model Meal {
+  id               String       @id @default(cuid())
+  admissionId      String
+  date             DateTime
+  mealType         MealType
+  status           MealStatus   @default(PLANEJADA)
+  preMealImageUrl  String?
+  postMealImageUrl String?
+  imageQuality     ImageQuality @default(NAO_AVALIADA)
+  confidence       Confidence   @default(NAO_APLICAVEL)
+  notes            String?
+  createdById      String
+  reviewedById     String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  admission  Admission    @relation(fields: [admissionId], references: [id])
+  createdBy  User         @relation("MealCreatedBy", fields: [createdById], references: [id])
+  reviewedBy User?        @relation("MealReviewedBy", fields: [reviewedById], references: [id])
+  items      MealItem[]
+  images     ImageAsset[]
+
+  @@index([admissionId, date])
+  @@index([status])
+}
+
+model MealItem {
+  id                      String          @id @default(cuid())
+  mealId                  String
+  foodItemId              String
+  servedPortionMultiplier Float
+  servedKcal              Float
+  servedProtein           Float
+  servedCarbs             Float           @default(0)
+  servedFat               Float           @default(0)
+  consumedPercent         ConsumedPercent @default(ZERO)
+  consumedKcal            Float
+  consumedProtein         Float
+  consumedCarbs           Float           @default(0)
+  consumedFat             Float           @default(0)
+  manuallyReviewed        Boolean         @default(false)
+  notes                   String?
+
+  meal     Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  foodItem FoodItem @relation(fields: [foodItemId], references: [id])
+
+  @@index([mealId])
+  @@index([foodItemId])
+}
+
+model NutritionDailySummary {
+  id                   String     @id @default(cuid())
+  admissionId          String
+  date                 DateTime
+  totalServedKcal      Float
+  totalConsumedKcal    Float
+  kcalTarget           Float
+  kcalTargetPercent    Float
+  totalServedProtein   Float
+  totalConsumedProtein Float
+  proteinTarget        Float
+  proteinTargetPercent Float
+  missingMealsCount    Int
+  alertLevel           AlertLevel
+  generatedAt          DateTime   @default(now())
+
+  admission Admission @relation(fields: [admissionId], references: [id])
+
+  @@unique([admissionId, date])
+  @@index([date])
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String?
+  entityType String
+  entityId   String
+  action     AuditAction
+  beforeJson Json?
+  afterJson  Json?
+  createdAt  DateTime    @default(now())
+  ipAddress  String?
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model ImageAsset {
+  id                          String         @id @default(cuid())
+  mealId                      String
+  type                        ImageAssetType
+  storagePath                 String
+  originalFilename            String
+  mimeType                    String
+  sizeBytes                   Int
+  uploadedById                String
+  createdAt                   DateTime       @default(now())
+  containsPotentialIdentifier Boolean        @default(false)
+  notes                       String?
+
+  meal       Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+
+  @@index([mealId])
+  @@index([uploadedById])
+}

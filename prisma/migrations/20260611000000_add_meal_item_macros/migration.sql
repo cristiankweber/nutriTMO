@@ -1,0 +1,6 @@
+-- Add carbohydrate and lipid values calculated at meal-item grain.
+ALTER TABLE "MealItem"
+ADD COLUMN "servedCarbs" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN "servedFat" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN "consumedCarbs" DOUBLE PRECISION NOT NULL DEFAULT 0,
+ADD COLUMN "consumedFat" DOUBLE PRECISION NOT NULL DEFAULT 0;

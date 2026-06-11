@@ -192,6 +192,8 @@ export async function createFoodItemAction(formData: FormData) {
 
   await writeAuditLog({ userId: user.id, entityType: "FoodItem", entityId: foodItem.id, action: "CREATE", afterJson: foodItem });
   revalidatePath("/menu");
+  revalidatePath("/meals/new");
+  redirect("/menu?salvo=1");
 }
 
 export async function updateFoodItemAction(formData: FormData) {
@@ -215,6 +217,8 @@ export async function updateFoodItemAction(formData: FormData) {
   });
   await writeAuditLog({ userId: user.id, entityType: "FoodItem", entityId: id, action: "UPDATE", beforeJson: before, afterJson: after });
   revalidatePath("/menu");
+  revalidatePath("/meals/new");
+  redirect("/menu?salvo=1");
 }
 
 export async function createPrescriptionAction(formData: FormData) {
@@ -247,6 +251,9 @@ export async function createPrescriptionAction(formData: FormData) {
   await refreshDailySummary(prescription.admissionId, prescription.date);
   revalidatePath("/prescriptions");
   revalidatePath("/dashboard");
+  revalidatePath(`/patients/${prescription.admissionId}`);
+  revalidatePath("/reports");
+  redirect("/prescriptions?salvo=1");
 }
 
 export async function updatePrescriptionAction(formData: FormData) {
@@ -284,6 +291,8 @@ export async function updatePrescriptionAction(formData: FormData) {
   }
   revalidatePath("/prescriptions");
   revalidatePath("/dashboard");
+  revalidatePath(`/patients/${after.admissionId}`);
+  revalidatePath("/reports");
   redirect("/prescriptions?salvo=1");
 }
 
@@ -304,7 +313,7 @@ export async function createMealAction(formData: FormData) {
   const foodById = new Map(foods.map((food) => [food.id, food]));
   const mealItems = foodItemIds.map((foodItemId, index) => {
     const food = foodById.get(foodItemId);
-    if (!food) throw new Error("Item de cardapio nao encontrado.");
+    if (!food) throw new Error("Item da base alimentar nao encontrado.");
     const multiplier = Number(String(multipliers[index] ?? "1").replace(",", "."));
     const consumedPercent = safePercent(percents[index] ?? null);
     const nutrition = calculateMealItemNutrition({
@@ -384,7 +393,9 @@ export async function createMealAction(formData: FormData) {
   await refreshDailySummary(admissionId, date);
   revalidatePath("/dashboard");
   revalidatePath("/review");
-  redirect(`/patients/${admissionId}`);
+  revalidatePath(`/patients/${admissionId}`);
+  revalidatePath("/reports");
+  redirect(`/patients/${admissionId}?refeicao=salva`);
 }
 
 export async function reviewMealAction(formData: FormData) {
@@ -435,6 +446,9 @@ export async function reviewMealAction(formData: FormData) {
   await refreshDailySummary(after.admissionId, after.date);
   revalidatePath("/review");
   revalidatePath("/dashboard");
+  revalidatePath(`/patients/${after.admissionId}`);
+  revalidatePath("/reports");
+  revalidatePath("/audit");
   redirect("/review?salvo=1");
 }
 
@@ -466,7 +480,9 @@ export async function cancelMealAction(formData: FormData) {
   revalidatePath("/review");
   revalidatePath("/dashboard");
   revalidatePath(`/patients/${after.admissionId}`);
-  redirect(`/patients/${after.admissionId}`);
+  revalidatePath("/reports");
+  revalidatePath("/audit");
+  redirect(`/patients/${after.admissionId}?cancelada=1`);
 }
 
 export async function logReportExportAction(formData: FormData) {
@@ -514,7 +530,7 @@ export async function createPatientAdmissionAction(formData: FormData) {
 
   revalidatePath("/patients");
   revalidatePath("/dashboard");
-  redirect(`/patients/${admission.id}`);
+  redirect(`/patients/${admission.id}?admissao=salva`);
 }
 
 export async function dischargeAdmissionAction(formData: FormData) {

@@ -16,17 +16,26 @@ import { getReviewMetadataFromLog, reviewReasonLabels } from "@/lib/review/rules
 
 export const dynamic = "force-dynamic";
 
-type ReviewLog = {
+type MealAuditLog = {
   id: string;
+  entityId: string;
   createdAt: Date;
+  action: string;
   beforeJson: unknown;
   afterJson: unknown;
   user: { name: string } | null;
 };
 
-export default async function PatientAdmissionPage({ params }: { params: Promise<{ admissionId: string }> }) {
+export default async function PatientAdmissionPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ admissionId: string }>;
+  searchParams: Promise<{ admissao?: string; cancelada?: string; refeicao?: string }>;
+}) {
   const user = await requireUser();
   const { admissionId } = await params;
+  const feedback = await searchParams;
   const today = startOfLocalDay();
   const admission = await db.admission.findUnique({
     where: { id: admissionId },
@@ -45,15 +54,16 @@ export default async function PatientAdmissionPage({ params }: { params: Promise
 
   if (!admission) throw new Error("Admissao nao encontrada.");
   const mealIds = admission.meals.map((meal) => meal.id);
-  const reviewLogs =
+  const mealLogs =
     mealIds.length > 0
       ? await db.auditLog.findMany({
-          where: { entityType: "Meal", action: "REVIEW", entityId: { in: mealIds } },
+          where: { entityType: "Meal", entityId: { in: mealIds }, action: { in: ["REVIEW", "UPDATE"] } },
           include: { user: true },
           orderBy: { createdAt: "desc" },
         })
       : [];
-  const latestReviewLogByMeal = new Map(reviewLogs.map((log) => [log.entityId, log]));
+  const latestReviewLogByMeal = new Map(mealLogs.filter((log) => log.action === "REVIEW").map((log) => [log.entityId, log]));
+  const latestCancellationLogByMeal = new Map(mealLogs.filter(isCancellationLog).map((log) => [log.entityId, log]));
   const currentPrescription = admission.prescriptions[0];
   const todaySummary = admission.summaries.find((summary) => summary.date.getTime() === today.getTime());
   const mealNutrientReport = buildMealNutrientReport(admission.meals);
@@ -70,13 +80,29 @@ export default async function PatientAdmissionPage({ params }: { params: Promise
             {transplantTypeLabels[admission.transplantType]} · {admission.transplantDay ?? "D+ nao informado"} · admissao demo em {formatDate(admission.admissionDate)}
           </p>
         </div>
-        <Link href="/meals/new" className="inline-flex items-center gap-2 rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">
-          <ClipboardPlus className="h-4 w-4" /> Registrar refeicao
+        <Link href="/meals/new" className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 sm:w-auto">
+          <ClipboardPlus className="h-4 w-4" /> Registrar ingesta
         </Link>
       </div>
 
+      {feedback.admissao ? (
+        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">
+          Admissao criada com dados ficticios/pseudonimizados.
+        </div>
+      ) : null}
+      {feedback.refeicao ? (
+        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">
+          Ingesta registrada, resumo diario recalculado e auditoria atualizada.
+        </div>
+      ) : null}
+      {feedback.cancelada ? (
+        <div className="mb-4 rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-900">
+          Refeicao cancelada sem exclusao de dados; historico e auditoria preservados.
+        </div>
+      ) : null}
+
       <div className="mb-5 grid gap-3 lg:grid-cols-4">
-        <div className="rounded-md border border-stone-200 bg-white p-4">
+        <div className="rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
           <h2 className="font-semibold">Prescricao ativa</h2>
           {currentPrescription ? (
             <div className="mt-3 space-y-2 text-sm">
@@ -88,7 +114,7 @@ export default async function PatientAdmissionPage({ params }: { params: Promise
             <p className="mt-3 text-sm text-stone-600">Sem prescricao ativa.</p>
           )}
         </div>
-        <div className="rounded-md border border-stone-200 bg-white p-4 lg:col-span-2">
+        <div className="rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50 lg:col-span-2">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h2 className="font-semibold">Ingesta de hoje</h2>
@@ -120,17 +146,17 @@ export default async function PatientAdmissionPage({ params }: { params: Promise
             <p className="mt-3 text-sm text-stone-600">Sem resumo gerado para hoje.</p>
           )}
         </div>
-        <div className="rounded-md border border-stone-200 bg-white p-4">
+        <div className="rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
           <h2 className="font-semibold">Observacoes clinicas</h2>
           <p className="mt-3 text-sm text-stone-600">{admission.clinicalNotes ?? "Nenhuma observacao clinica registrada no demo."}</p>
         </div>
       </div>
 
-      <section className="mb-5 rounded-md border border-stone-200 bg-white p-4">
+      <section className="mb-5 rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
         <h2 className="mb-3 text-lg font-semibold">Evolucao diaria</h2>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-stone-200 text-xs uppercase text-stone-500">
+            <thead className="border-b border-stone-200 bg-stone-100/80 text-xs uppercase text-stone-500">
               <tr>
                 <th className="py-2">Data</th>
                 <th>Kcal</th>
@@ -154,13 +180,16 @@ export default async function PatientAdmissionPage({ params }: { params: Promise
             </tbody>
           </table>
         </div>
+        {admission.summaries.length === 0 ? (
+          <p className="mt-3 text-sm text-stone-600">Sem evolucao diaria registrada para esta admissao.</p>
+        ) : null}
       </section>
 
-      <section className="mb-5 rounded-md border border-stone-200 bg-white p-4">
+      <section className="mb-5 rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
         <h2 className="text-lg font-semibold">Distribuicao por refeicao hoje</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {mealNutrientReport.rows.map((row) => (
-            <div key={row.mealType} className="rounded-md border border-stone-200 bg-stone-50 p-3 text-sm">
+            <div key={row.mealType} className="rounded-md border border-stone-200 bg-stone-50/80 p-3 text-sm">
               <div className="font-semibold">{mealReportLabels[row.mealType]}</div>
               <div className="mt-2 text-stone-600">
                 {row.hasRecord ? `${row.totalConsumedKcal.toFixed(0)} kcal · ${row.totalConsumedProtein.toFixed(1)} g proteina` : "Sem registro"}
@@ -177,9 +206,9 @@ export default async function PatientAdmissionPage({ params }: { params: Promise
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">Refeicoes de hoje</h2>
+        <h2 className="text-lg font-semibold">Ingestas registradas hoje</h2>
         {admission.meals.map((meal) => (
-          <div key={meal.id} className="rounded-md border border-stone-200 bg-white p-4">
+          <div key={meal.id} className="rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="font-semibold">{mealTypeLabels[meal.mealType]}</div>
@@ -199,7 +228,7 @@ export default async function PatientAdmissionPage({ params }: { params: Promise
             ) : null}
             <div className="mt-3 grid gap-2 md:grid-cols-2">
               {meal.items.map((item) => (
-                <div key={item.id} className="rounded-md bg-stone-50 p-3 text-sm">
+                <div key={item.id} className="rounded-md border border-stone-200 bg-stone-50/80 p-3 text-sm">
                   <div className="font-medium">{item.foodItem.name}</div>
                   <div className="text-stone-600">
                     {item.consumedKcal.toFixed(0)} kcal · {item.consumedProtein.toFixed(1)} g proteina ingeridos
@@ -214,21 +243,33 @@ export default async function PatientAdmissionPage({ params }: { params: Promise
                 fallbackReviewer={meal.reviewedBy?.name ?? null}
               />
             ) : null}
+            {meal.status === "CANCELADA" ? (
+              <CancellationHistoryPanel
+                log={latestCancellationLogByMeal.get(meal.id)}
+                fallbackReviewer={meal.reviewedBy?.name ?? null}
+                fallbackReason={meal.notes}
+              />
+            ) : null}
             {canCancelMeal && meal.status !== "CANCELADA" ? (
-              <form action={cancelMealAction} className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-stone-200 bg-stone-50 p-3">
+              <form action={cancelMealAction} className="mt-3 flex flex-wrap items-center gap-2 rounded-md border border-stone-200 bg-stone-50/80 p-3">
                 <input type="hidden" name="mealId" value={meal.id} />
                 <input
                   name="cancelReason"
                   placeholder="Motivo do cancelamento"
                   className="min-w-52 flex-1 rounded-md border border-stone-300 px-3 py-2 text-sm"
                 />
-                <button className="rounded-md border border-rose-300 px-3 py-2 text-sm font-semibold text-rose-800 hover:bg-rose-50">
-                  Cancelar refeicao
+                <button className="w-full rounded-md border border-rose-300 bg-white px-3 py-2 text-sm font-semibold text-rose-800 transition-colors hover:bg-rose-50 sm:w-auto">
+                  Cancelar registro
                 </button>
               </form>
             ) : null}
           </div>
         ))}
+        {admission.meals.length === 0 ? (
+          <div className="rounded-md border border-stone-200 bg-white p-6 text-sm text-stone-600 shadow-sm shadow-stone-200/50">
+            Nenhuma ingesta registrada hoje para esta admissao.
+          </div>
+        ) : null}
       </section>
     </AppShell>
   );
@@ -238,7 +279,7 @@ function ReviewHistoryPanel({
   log,
   fallbackReviewer,
 }: {
-  log: ReviewLog | undefined;
+  log: MealAuditLog | undefined;
   fallbackReviewer: string | null;
 }) {
   const metadata = getReviewMetadataFromLog(log?.beforeJson, log?.afterJson);
@@ -276,8 +317,50 @@ function ReviewHistoryPanel({
   );
 }
 
+function CancellationHistoryPanel({
+  log,
+  fallbackReviewer,
+  fallbackReason,
+}: {
+  log: MealAuditLog | undefined;
+  fallbackReviewer: string | null;
+  fallbackReason: string | null;
+}) {
+  const reason = getCancellationReason(log?.afterJson) ?? fallbackReason ?? "Motivo nao registrado.";
+
+  return (
+    <div className="mt-3 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="font-semibold text-rose-950">Historico auditavel do cancelamento</div>
+          <div className="mt-1 text-rose-900">
+            Cancelada por {log?.user?.name ?? fallbackReviewer ?? "usuario nao identificado"}
+            {log ? ` em ${formatDateTime(log.createdAt)}` : ""}
+          </div>
+        </div>
+        {log ? <span className="rounded-md bg-white px-2 py-1 text-xs font-mono text-rose-900">AuditLog {log.id}</span> : null}
+      </div>
+      <p className="mt-2 text-rose-900">Motivo: {reason}</p>
+    </div>
+  );
+}
+
+function isCancellationLog(log: MealAuditLog) {
+  const after = asRecord(log.afterJson);
+  return log.action === "UPDATE" && (after?.status === "CANCELADA" || typeof after?.cancellationReason === "string");
+}
+
+const getCancellationReason = (value: unknown) => {
+  const record = asRecord(value);
+  const reason = record?.cancellationReason ?? record?.notes;
+  return typeof reason === "string" && reason.trim() ? reason : null;
+};
+
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : null;
+
 const getStatusFromJson = (value: unknown) => {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
-  const status = (value as { status?: unknown }).status;
+  const record = asRecord(value);
+  const status = record?.status;
   return typeof status === "string" ? mealStatusLabels[status as keyof typeof mealStatusLabels] ?? status : null;
 };

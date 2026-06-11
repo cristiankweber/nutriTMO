@@ -18,16 +18,22 @@ import {
 } from "../src/generated/prisma/client";
 import {
   buildDailySummary,
+  calculateConsumedCarbs,
+  calculateConsumedFat,
+  calculateConsumedKcal,
+  calculateConsumedProtein,
   calculateMealItemNutrition,
   consumedPercentToValue,
 } from "../src/lib/clinical/calculations";
 import { addDays, startOfLocalDay } from "../src/lib/dates";
+import { buildReviewMetadata } from "../src/lib/review/rules";
 import { getImageStorageDir } from "../src/lib/storage/local";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 const passwordHash = async () => bcrypt.hash("nutritmo123", 10);
+const asJson = (value: unknown) => JSON.parse(JSON.stringify(value));
 
 const demoPhotoSvg = (title: string, subtitle: string, plateColor: string) => `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="480" viewBox="0 0 640 480">
   <rect width="640" height="480" fill="#f5f5f4"/>
@@ -153,8 +159,8 @@ const main = async () => {
     Array.from({ length: 5 }, (_, index) =>
       prisma.patient.create({
         data: {
-          internalCode: `PSEUDO-TMO-${String(index + 1).padStart(3, "0")}`,
-          displayName: `Paciente demo ${index + 1}`,
+          internalCode: `TMO-${String(index + 1).padStart(3, "0")}`,
+          displayName: `Caso demonstrativo ${index + 1}`,
           active: true,
         },
       }),
@@ -264,10 +270,10 @@ const main = async () => {
                 admissionId: admission.id,
                 date: today,
                 mealType: MealType.ALMOCO,
-                status: index === 2 ? MealStatus.PARCIALMENTE_REGISTRADA : MealStatus.FINALIZADA,
+                status: MealStatus.FINALIZADA,
                 imageQuality: index === 2 ? ImageQuality.INADEQUADA : ImageQuality.ADEQUADA,
                 confidence: index === 2 ? Confidence.BAIXA : Confidence.ALTA,
-                notes: index === 2 ? "Foto pos-refeicao inadequada para demonstrar revisao." : "Registro demo.",
+                notes: index === 2 ? "Foto pos-refeicao inadequada e baixa confianca para demonstrar revisao." : "Registro demo.",
                 createdById: index === 4 ? enfermagem.id : nutricao.id,
                 items: {
                   create: [
@@ -333,6 +339,76 @@ const main = async () => {
         postMealImageUrl: `/api/images/${postImage.id}`,
       },
     });
+
+    if (index === 0) {
+      const reviewedMeal = createdMeals.find((meal) => meal.mealType === MealType.JANTAR);
+      if (reviewedMeal) {
+        const beforeReview = {
+          ...reviewedMeal,
+          status: MealStatus.FINALIZADA,
+          imageQuality: ImageQuality.INADEQUADA,
+          confidence: Confidence.BAIXA,
+          reviewedById: null,
+          notes: "Registro original demo com baixa confianca antes da revisao.",
+          items: reviewedMeal.items.map((item) => ({
+            ...item,
+            consumedPercent: ConsumedPercent.FIFTY,
+            consumedKcal: calculateConsumedKcal(item.servedKcal, 50),
+            consumedProtein: calculateConsumedProtein(item.servedProtein, 50),
+            consumedCarbs: calculateConsumedCarbs(item.servedCarbs, 50),
+            consumedFat: calculateConsumedFat(item.servedFat, 50),
+            manuallyReviewed: false,
+          })),
+        };
+        const reviewMetadata = buildReviewMetadata(beforeReview, reviewedMeal, reviewedMeal.notes);
+        await prisma.auditLog.create({
+          data: {
+            userId: nutricao.id,
+            entityType: "Meal",
+            entityId: reviewedMeal.id,
+            action: "REVIEW",
+            beforeJson: asJson(beforeReview),
+            afterJson: asJson({ ...reviewedMeal, reviewMetadata }),
+          },
+        });
+      }
+    }
+
+    if (index === 1) {
+      const canceledBefore = await prisma.meal.create({
+        data: {
+          admissionId: admission.id,
+          date: today,
+          mealType: MealType.JANTAR,
+          status: MealStatus.FINALIZADA,
+          imageQuality: ImageQuality.ADEQUADA,
+          confidence: Confidence.MEDIA,
+          notes: "Registro demo posteriormente cancelado por duplicidade.",
+          createdById: nutricao.id,
+          items: { create: [createMealItem(foods[13], 1, ConsumedPercent.FIFTY)] },
+        },
+        include: { items: true },
+      });
+      const canceledAfter = await prisma.meal.update({
+        where: { id: canceledBefore.id },
+        data: {
+          status: MealStatus.CANCELADA,
+          reviewedById: nutricao.id,
+          notes: "Cancelada no seed demo: registro duplicado para demonstracao.",
+        },
+        include: { items: true },
+      });
+      await prisma.auditLog.create({
+        data: {
+          userId: nutricao.id,
+          entityType: "Meal",
+          entityId: canceledAfter.id,
+          action: "UPDATE",
+          beforeJson: asJson(canceledBefore),
+          afterJson: asJson({ ...canceledAfter, cancellationReason: "Registro duplicado para demonstracao." }),
+        },
+      });
+    }
 
     const prescription = prescriptions[Math.min(index, prescriptions.length - 1)];
     const mealItems = createdMeals.flatMap((meal) => meal.items);

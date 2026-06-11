@@ -7,6 +7,18 @@ import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
+type PrescriptionFieldsValue = {
+  dietType: string;
+  consistency: string;
+  kcalTarget: number;
+  proteinTarget: number;
+  restrictions: string | null;
+  fluidRestriction: string | null;
+  supplementsPlan: string | null;
+};
+
+const inputClass = "min-h-10 w-full rounded-md border border-stone-300 bg-white px-3 py-2 text-sm";
+
 export default async function PrescriptionsPage({ searchParams }: { searchParams: Promise<{ salvo?: string }> }) {
   const user = await requireUser();
   const allowed = canManagePrescriptions(user.role);
@@ -24,7 +36,9 @@ export default async function PrescriptionsPage({ searchParams }: { searchParams
     <AppShell user={user}>
       <div className="mb-5">
         <h1 className="text-2xl font-semibold">Prescricao nutricional</h1>
-        <p className="mt-1 text-sm text-stone-600">Metas diarias, consistencia, restricoes e plano de suplementos.</p>
+        <p className="mt-1 text-sm text-stone-600">
+          Plano e metas do paciente. Esta tela nao registra consumo; o consumo real fica em Registro de ingesta.
+        </p>
       </div>
 
       {params.salvo ? (
@@ -33,33 +47,46 @@ export default async function PrescriptionsPage({ searchParams }: { searchParams
         </div>
       ) : null}
 
-      {allowed ? (
-        <form action={createPrescriptionAction} className="mb-5 grid gap-3 rounded-md border border-stone-200 bg-white p-4 md:grid-cols-4">
-          <select name="admissionId" className="rounded-md border border-stone-300 px-3 py-2 md:col-span-2">
-            {admissions.map((admission) => (
-              <option key={admission.id} value={admission.id}>
-                {admission.bed.name} - {admission.patient.internalCode}
-              </option>
-            ))}
-          </select>
-          <input name="date" type="date" defaultValue={toDateInputValue(new Date())} className="rounded-md border border-stone-300 px-3 py-2" required />
-          <label className="flex items-center gap-2 text-sm">
-            <input name="reviewed" type="checkbox" /> Revisada
-          </label>
-          <input name="dietType" placeholder="Tipo de dieta" className="rounded-md border border-stone-300 px-3 py-2" required />
-          <input name="consistency" placeholder="Consistencia" className="rounded-md border border-stone-300 px-3 py-2" required />
-          <input name="kcalTarget" type="number" step="1" placeholder="Meta kcal" className="rounded-md border border-stone-300 px-3 py-2" required />
-          <input name="proteinTarget" type="number" step="0.1" placeholder="Meta proteina g" className="rounded-md border border-stone-300 px-3 py-2" required />
-          <input name="restrictions" placeholder="Restricoes" className="rounded-md border border-stone-300 px-3 py-2 md:col-span-2" />
-          <input name="fluidRestriction" placeholder="Restricao hidrica" className="rounded-md border border-stone-300 px-3 py-2" />
-          <input name="supplementsPlan" placeholder="Plano de suplementos" className="rounded-md border border-stone-300 px-3 py-2" />
-          <button className="rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900 md:col-span-4">Criar prescricao</button>
+      {allowed && admissions.length > 0 ? (
+        <form action={createPrescriptionAction} className="mb-5 space-y-4 rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
+          <div>
+            <div className="mb-2 text-xs font-semibold uppercase text-stone-500">Paciente e revisao</div>
+            <div className="grid gap-3 lg:grid-cols-[2fr_1fr_auto]">
+              <Field label="Paciente/leito">
+                <select name="admissionId" className={inputClass}>
+                  {admissions.map((admission) => (
+                    <option key={admission.id} value={admission.id}>
+                      {admission.bed.name} - {admission.patient.internalCode}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Data">
+                <input name="date" type="date" defaultValue={toDateInputValue(new Date())} className={inputClass} required />
+              </Field>
+              <label className="inline-flex min-h-10 items-center gap-2 self-end rounded-md border border-stone-200 bg-stone-50 px-3 py-2 text-sm">
+                <input name="reviewed" type="checkbox" /> Revisada
+              </label>
+            </div>
+          </div>
+          <PrescriptionFields />
+          <button className="w-full rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 sm:w-auto">Criar prescricao</button>
         </form>
+      ) : null}
+      {allowed && admissions.length === 0 ? (
+        <div className="mb-5 rounded-md border border-stone-200 bg-white p-6 text-sm text-stone-600 shadow-sm shadow-stone-200/50">
+          Nenhuma admissao ativa disponivel para nova prescricao.
+        </div>
       ) : null}
 
       <div className="space-y-3">
+        {prescriptions.length === 0 ? (
+          <div className="rounded-md border border-stone-200 bg-white p-6 text-sm text-stone-600 shadow-sm shadow-stone-200/50">
+            Nenhuma prescricao cadastrada no demo atual.
+          </div>
+        ) : null}
         {prescriptions.map((prescription) => (
-          <div key={prescription.id} className="rounded-md border border-stone-200 bg-white p-4">
+          <div key={prescription.id} className="rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="font-semibold">
@@ -75,27 +102,25 @@ export default async function PrescriptionsPage({ searchParams }: { searchParams
               </div>
             </div>
             <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
-              <div className="rounded-md bg-stone-50 p-3">Restricoes: {prescription.restrictions ?? "Nao registradas"}</div>
-              <div className="rounded-md bg-stone-50 p-3">Suplementos: {prescription.supplementsPlan ?? "Nao registrado"}</div>
-              <div className="rounded-md bg-stone-50 p-3">Criado por: {prescription.createdBy.name}</div>
+              <div className="rounded-md border border-stone-200 bg-stone-50/80 p-3">Restricoes: {prescription.restrictions ?? "Nao registradas"}</div>
+              <div className="rounded-md border border-stone-200 bg-stone-50/80 p-3">Suplementos: {prescription.supplementsPlan ?? "Nao registrado"}</div>
+              <div className="rounded-md border border-stone-200 bg-stone-50/80 p-3">Criado por: {prescription.createdBy.name}</div>
             </div>
             {allowed ? (
-              <details className="mt-3 rounded-md border border-stone-200 bg-stone-50 p-3">
+              <details className="mt-3 rounded-md border border-stone-200 bg-stone-50/80 p-3">
                 <summary className="cursor-pointer text-sm font-semibold text-stone-700">Editar prescricao</summary>
-                <form action={updatePrescriptionAction} className="mt-3 grid gap-3 md:grid-cols-4">
+                <form action={updatePrescriptionAction} className="mt-3 space-y-4">
                   <input type="hidden" name="id" value={prescription.id} />
-                  <input name="date" type="date" defaultValue={toDateInputValue(prescription.date)} className="rounded-md border border-stone-300 px-3 py-2" required />
-                  <input name="dietType" defaultValue={prescription.dietType} placeholder="Tipo de dieta" className="rounded-md border border-stone-300 px-3 py-2" required />
-                  <input name="consistency" defaultValue={prescription.consistency} placeholder="Consistencia" className="rounded-md border border-stone-300 px-3 py-2" required />
-                  <label className="flex items-center gap-2 text-sm">
-                    <input name="reviewed" type="checkbox" defaultChecked={Boolean(prescription.reviewedById)} /> Revisada
-                  </label>
-                  <input name="kcalTarget" type="number" step="1" defaultValue={prescription.kcalTarget} placeholder="Meta kcal" className="rounded-md border border-stone-300 px-3 py-2" required />
-                  <input name="proteinTarget" type="number" step="0.1" defaultValue={prescription.proteinTarget} placeholder="Meta proteina g" className="rounded-md border border-stone-300 px-3 py-2" required />
-                  <input name="restrictions" defaultValue={prescription.restrictions ?? ""} placeholder="Restricoes" className="rounded-md border border-stone-300 px-3 py-2 md:col-span-2" />
-                  <input name="fluidRestriction" defaultValue={prescription.fluidRestriction ?? ""} placeholder="Restricao hidrica" className="rounded-md border border-stone-300 px-3 py-2" />
-                  <input name="supplementsPlan" defaultValue={prescription.supplementsPlan ?? ""} placeholder="Plano de suplementos" className="rounded-md border border-stone-300 px-3 py-2" />
-                  <button className="rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-stone-100 md:col-span-2">
+                  <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <Field label="Data">
+                      <input name="date" type="date" defaultValue={toDateInputValue(prescription.date)} className={inputClass} required />
+                    </Field>
+                    <label className="inline-flex min-h-10 items-center gap-2 self-end rounded-md border border-stone-200 bg-white px-3 py-2 text-sm">
+                      <input name="reviewed" type="checkbox" defaultChecked={Boolean(prescription.reviewedById)} /> Revisada
+                    </label>
+                  </div>
+                  <PrescriptionFields prescription={prescription} />
+                  <button className="w-full rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-semibold transition-colors hover:bg-stone-100 sm:w-auto">
                     Salvar alteracoes
                   </button>
                 </form>
@@ -105,5 +130,52 @@ export default async function PrescriptionsPage({ searchParams }: { searchParams
         ))}
       </div>
     </AppShell>
+  );
+}
+
+function PrescriptionFields({ prescription }: { prescription?: PrescriptionFieldsValue }) {
+  return (
+    <>
+      <div>
+        <div className="mb-2 text-xs font-semibold uppercase text-stone-500">Plano</div>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <Field label="Tipo de dieta">
+            <input name="dietType" defaultValue={prescription?.dietType ?? ""} placeholder="Tipo de dieta" className={inputClass} required />
+          </Field>
+          <Field label="Consistencia">
+            <input name="consistency" defaultValue={prescription?.consistency ?? ""} placeholder="Consistencia" className={inputClass} required />
+          </Field>
+        </div>
+      </div>
+      <div>
+        <div className="mb-2 text-xs font-semibold uppercase text-stone-500">Metas e observacoes</div>
+        <div className="grid gap-3 lg:grid-cols-4">
+          <Field label="Meta kcal">
+            <input name="kcalTarget" type="number" step="1" defaultValue={prescription?.kcalTarget ?? ""} placeholder="kcal" className={inputClass} required />
+          </Field>
+          <Field label="Meta proteina">
+            <input name="proteinTarget" type="number" step="0.1" defaultValue={prescription?.proteinTarget ?? ""} placeholder="g" className={inputClass} required />
+          </Field>
+          <Field label="Restricoes" className="lg:col-span-2">
+            <input name="restrictions" defaultValue={prescription?.restrictions ?? ""} placeholder="Restricoes" className={inputClass} />
+          </Field>
+          <Field label="Restricao hidrica" className="lg:col-span-2">
+            <input name="fluidRestriction" defaultValue={prescription?.fluidRestriction ?? ""} placeholder="Restricao hidrica" className={inputClass} />
+          </Field>
+          <Field label="Plano de suplementos" className="lg:col-span-2">
+            <input name="supplementsPlan" defaultValue={prescription?.supplementsPlan ?? ""} placeholder="Plano de suplementos" className={inputClass} />
+          </Field>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function Field({ label, className = "", children }: { label: string; className?: string; children: React.ReactNode }) {
+  return (
+    <label className={`space-y-1 text-xs font-semibold uppercase text-stone-500 ${className}`}>
+      <span>{label}</span>
+      {children}
+    </label>
   );
 }

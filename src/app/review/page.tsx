@@ -16,7 +16,7 @@ const confidences = Object.keys(confidenceLabels) as Confidence[];
 
 export default async function ReviewPage({ searchParams }: { searchParams: Promise<{ salvo?: string }> }) {
   const user = await requireUser();
-  if (!canReviewMeals(user.role)) throw new Error("Perfil sem permissao para revisao.");
+  if (!canReviewMeals(user.role)) throw new Error("Perfil sem permissao para revisar registros de ingesta.");
   const params = await searchParams;
 
   const meals = await db.meal.findMany({
@@ -34,7 +34,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
     <AppShell user={user}>
       <div className="mb-5">
         <h1 className="text-2xl font-semibold">Revisao humana</h1>
-        <p className="mt-1 text-sm text-stone-600">Refeicoes com baixa confianca, foto inadequada ou registro parcial.</p>
+        <p className="mt-1 text-sm text-stone-600">Registros de ingesta com baixa confianca, foto inadequada ou preenchimento parcial.</p>
       </div>
 
       {params.salvo ? (
@@ -45,7 +45,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
 
       <div className="space-y-4">
         {meals.map((meal) => (
-          <form key={meal.id} action={reviewMealAction} className="rounded-md border border-stone-200 bg-white p-4">
+          <form key={meal.id} action={reviewMealAction} className="rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
             <input type="hidden" name="mealId" value={meal.id} />
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -87,7 +87,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
             </div>
             <div className="space-y-2">
               {meal.items.map((item) => (
-                <div key={item.id} className="grid gap-2 rounded-md bg-stone-50 p-3 md:grid-cols-[2fr_1fr_2fr]">
+                <div key={item.id} className="grid gap-2 rounded-md border border-stone-200 bg-stone-50/80 p-3 md:grid-cols-[2fr_1fr_2fr]">
                   <div>
                     <div className="font-medium">{item.foodItem.name}</div>
                     <div className="text-sm text-stone-600">
@@ -106,10 +106,10 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
               ))}
             </div>
             <textarea name="mealNotes" defaultValue={meal.notes ?? ""} className="mt-3 w-full rounded-md border border-stone-300 px-3 py-2 text-sm" placeholder="Observacao da revisao" />
-            <button className="mt-3 rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">Salvar revisao</button>
+            <button className="mt-3 w-full rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 sm:w-auto">Salvar revisao</button>
           </form>
         ))}
-        {meals.length === 0 ? <div className="rounded-md border border-stone-200 bg-white p-6 text-sm text-stone-600">Nenhuma refeicao pendente de revisao.</div> : null}
+        {meals.length === 0 ? <div className="rounded-md border border-stone-200 bg-white p-6 text-sm text-stone-600 shadow-sm shadow-stone-200/50">Nenhum registro de ingesta pendente de revisao.</div> : null}
       </div>
     </AppShell>
   );

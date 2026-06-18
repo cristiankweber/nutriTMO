@@ -5,11 +5,13 @@ import {
   calculateConsumedFat,
   calculateConsumedKcal,
   calculateConsumedProtein,
+  calculateConsumedSodium,
   calculateDailyTotals,
   calculateServedCarbs,
   calculateServedFat,
   calculateServedKcal,
   calculateServedProtein,
+  calculateServedSodium,
   calculateTargetPercent,
   generateDailyAlert,
 } from "../src/lib/clinical/calculations";
@@ -31,6 +33,10 @@ describe("regras nutricionais", () => {
     expect(calculateServedFat(11, 0.5)).toBe(5.5);
   });
 
+  it("calcula sodio servido por item", () => {
+    expect(calculateServedSodium(420, 1.5)).toBe(630);
+  });
+
   it("calcula kcal ingerida por percentual", () => {
     expect(calculateConsumedKcal(220, 25)).toBe(55);
   });
@@ -45,6 +51,10 @@ describe("regras nutricionais", () => {
 
   it("calcula LIP ingerido por percentual", () => {
     expect(calculateConsumedFat(30, 50)).toBe(15);
+  });
+
+  it("calcula sodio ingerido por percentual", () => {
+    expect(calculateConsumedSodium(400, 25)).toBe(100);
   });
 
   it("soma kcal e proteina diaria", () => {

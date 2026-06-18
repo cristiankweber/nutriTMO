@@ -245,11 +245,13 @@ model MealItem {
   servedProtein           Float
   servedCarbs             Float           @default(0)
   servedFat               Float           @default(0)
+  servedSodium            Float           @default(0)
   consumedPercent         ConsumedPercent @default(ZERO)
   consumedKcal            Float
   consumedProtein         Float
   consumedCarbs           Float           @default(0)
   consumedFat             Float           @default(0)
+  consumedSodium          Float           @default(0)
   manuallyReviewed        Boolean         @default(false)
   notes                   String?
 

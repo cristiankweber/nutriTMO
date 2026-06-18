@@ -3,6 +3,8 @@ import { expect, type Locator, type Page } from "@playwright/test";
 export const demoPassword = "nutritmo123";
 export const adminEmail = "admin@nutritmo.local";
 export const auditorEmail = "auditor@nutritmo.local";
+export const nutritionEmail = "nutricao@nutritmo.local";
+export const nursingEmail = "enfermagem@nutritmo.local";
 
 export function collectConsoleProblems(page: Page) {
   const problems: string[] = [];

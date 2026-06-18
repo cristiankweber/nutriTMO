@@ -14,6 +14,7 @@ export type NutritionItemInput = {
   proteinPerPortion: number;
   carbsPerPortion?: number | null;
   fatPerPortion?: number | null;
+  sodiumMgPerPortion?: number | null;
   servedPortionMultiplier: number;
   consumedPercent: ConsumedPercentValue;
 };
@@ -52,6 +53,7 @@ export type MealNutrientReportItemInput = {
   consumedProtein: number;
   consumedCarbs?: number | null;
   consumedFat?: number | null;
+  consumedSodium?: number | null;
   manuallyReviewed?: boolean;
 };
 
@@ -68,6 +70,7 @@ export type MealNutrientReportRow = {
   totalConsumedCarbs: number;
   totalConsumedProtein: number;
   totalConsumedFat: number;
+  totalConsumedSodium: number;
   kcalPercentOfDay: number;
   hasRecord: boolean;
   isPending: boolean;
@@ -138,6 +141,9 @@ export const calculateServedCarbs = (carbsPerPortion: number | null | undefined,
 export const calculateServedFat = (fatPerPortion: number | null | undefined, servedPortionMultiplier: number) =>
   roundNutrition((fatPerPortion ?? 0) * servedPortionMultiplier);
 
+export const calculateServedSodium = (sodiumMgPerPortion: number | null | undefined, servedPortionMultiplier: number) =>
+  roundNutrition((sodiumMgPerPortion ?? 0) * servedPortionMultiplier);
+
 export const calculateConsumedKcal = (servedKcal: number, consumedPercent: ConsumedPercentValue) =>
   roundNutrition((servedKcal * consumedPercent) / 100);
 
@@ -150,21 +156,27 @@ export const calculateConsumedCarbs = (servedCarbs: number, consumedPercent: Con
 export const calculateConsumedFat = (servedFat: number, consumedPercent: ConsumedPercentValue) =>
   roundNutrition((servedFat * consumedPercent) / 100);
 
+export const calculateConsumedSodium = (servedSodium: number, consumedPercent: ConsumedPercentValue) =>
+  roundNutrition((servedSodium * consumedPercent) / 100);
+
 export const calculateMealItemNutrition = (input: NutritionItemInput) => {
   const servedKcal = calculateServedKcal(input.kcalPerPortion, input.servedPortionMultiplier);
   const servedProtein = calculateServedProtein(input.proteinPerPortion, input.servedPortionMultiplier);
   const servedCarbs = calculateServedCarbs(input.carbsPerPortion, input.servedPortionMultiplier);
   const servedFat = calculateServedFat(input.fatPerPortion, input.servedPortionMultiplier);
+  const servedSodium = calculateServedSodium(input.sodiumMgPerPortion, input.servedPortionMultiplier);
 
   return {
     servedKcal,
     servedProtein,
     servedCarbs,
     servedFat,
+    servedSodium,
     consumedKcal: calculateConsumedKcal(servedKcal, input.consumedPercent),
     consumedProtein: calculateConsumedProtein(servedProtein, input.consumedPercent),
     consumedCarbs: calculateConsumedCarbs(servedCarbs, input.consumedPercent),
     consumedFat: calculateConsumedFat(servedFat, input.consumedPercent),
+    consumedSodium: calculateConsumedSodium(servedSodium, input.consumedPercent),
   };
 };
 
@@ -214,6 +226,7 @@ const emptyMealReportRow = (mealType: MealReportMealType | "TOTAL"): MealNutrien
   totalConsumedCarbs: 0,
   totalConsumedProtein: 0,
   totalConsumedFat: 0,
+  totalConsumedSodium: 0,
   kcalPercentOfDay: 0,
   hasRecord: false,
   isPending: false,
@@ -252,6 +265,7 @@ export const buildMealNutrientReport = (meals: MealNutrientReportMealInput[]): M
           totalConsumedCarbs: roundNutrition(itemAcc.totalConsumedCarbs + (item.consumedCarbs ?? 0)),
           totalConsumedProtein: roundNutrition(itemAcc.totalConsumedProtein + item.consumedProtein),
           totalConsumedFat: roundNutrition(itemAcc.totalConsumedFat + (item.consumedFat ?? 0)),
+          totalConsumedSodium: roundNutrition(itemAcc.totalConsumedSodium + (item.consumedSodium ?? 0)),
           hasReviewedItem: itemAcc.hasReviewedItem || (item.manuallyReviewed ?? false),
         }),
         {
@@ -259,6 +273,7 @@ export const buildMealNutrientReport = (meals: MealNutrientReportMealInput[]): M
           totalConsumedCarbs: 0,
           totalConsumedProtein: 0,
           totalConsumedFat: 0,
+          totalConsumedSodium: 0,
           hasReviewedItem: false,
         },
       );
@@ -269,6 +284,7 @@ export const buildMealNutrientReport = (meals: MealNutrientReportMealInput[]): M
         totalConsumedCarbs: roundNutrition(totals.totalConsumedCarbs + itemTotals.totalConsumedCarbs),
         totalConsumedProtein: roundNutrition(totals.totalConsumedProtein + itemTotals.totalConsumedProtein),
         totalConsumedFat: roundNutrition(totals.totalConsumedFat + itemTotals.totalConsumedFat),
+        totalConsumedSodium: roundNutrition(totals.totalConsumedSodium + itemTotals.totalConsumedSodium),
         hasRecord: true,
         isPending: totals.isPending || pendingMealStatuses.has(meal.status),
         isReviewed: totals.isReviewed || meal.status === "REVISADA" || itemTotals.hasReviewedItem,
@@ -286,6 +302,7 @@ export const buildMealNutrientReport = (meals: MealNutrientReportMealInput[]): M
       totalConsumedCarbs: roundNutrition(totals.totalConsumedCarbs + row.totalConsumedCarbs),
       totalConsumedProtein: roundNutrition(totals.totalConsumedProtein + row.totalConsumedProtein),
       totalConsumedFat: roundNutrition(totals.totalConsumedFat + row.totalConsumedFat),
+      totalConsumedSodium: roundNutrition(totals.totalConsumedSodium + row.totalConsumedSodium),
       hasRecord: totals.hasRecord || row.hasRecord,
       isPending: totals.isPending || row.isPending,
       isReviewed: totals.isReviewed || row.isReviewed,

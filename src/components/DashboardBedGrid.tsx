@@ -82,7 +82,7 @@ export function DashboardBedGrid({
 
   return (
     <section className="space-y-3">
-      <div className="rounded-md border border-stone-200 bg-white p-3 shadow-sm shadow-stone-200/50">
+      <div className="sticky top-0 z-10 -mx-1 rounded-md border border-stone-200 bg-[#f6f7f5]/95 p-3 shadow-sm shadow-stone-200/50 backdrop-blur">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-stone-500">
             <Filter className="h-3.5 w-3.5" />

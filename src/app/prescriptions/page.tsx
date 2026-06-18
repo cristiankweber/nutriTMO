@@ -57,7 +57,10 @@ export default async function PrescriptionsPage({ searchParams }: { searchParams
       ) : null}
 
       {allowed && admissions.length > 0 ? (
-        <form action={createPrescriptionAction} className="mb-5 space-y-4 rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
+        <section className="mb-5 rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
+          <h2 className="text-lg font-semibold">Criar nova prescricao</h2>
+          <p className="mt-1 text-sm text-stone-600">Cadastre metas e plano alimentar para uma admissao ativa.</p>
+          <form action={createPrescriptionAction} className="mt-4 space-y-4">
           <div>
             <div className="mb-2 text-xs font-semibold uppercase text-stone-500">Paciente e revisao</div>
             <div className="grid gap-3 lg:grid-cols-[2fr_1fr_auto]">
@@ -81,6 +84,7 @@ export default async function PrescriptionsPage({ searchParams }: { searchParams
           <PrescriptionFields />
           <button className="w-full rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 sm:w-auto">Criar prescricao</button>
         </form>
+        </section>
       ) : null}
       {allowed && admissions.length === 0 ? (
         <div className="mb-5 rounded-md border border-stone-200 bg-white p-6 text-sm text-stone-600 shadow-sm shadow-stone-200/50">
@@ -89,6 +93,7 @@ export default async function PrescriptionsPage({ searchParams }: { searchParams
       ) : null}
 
       <div className="space-y-3">
+        <h2 className="text-lg font-semibold">Prescricoes registradas</h2>
         {prescriptions.length === 0 ? (
           <div className="rounded-md border border-stone-200 bg-white p-6 text-sm text-stone-600 shadow-sm shadow-stone-200/50">
             Nenhuma prescricao cadastrada no demo atual.

@@ -21,6 +21,7 @@ type FoodOption = {
   proteinPerPortion: number;
   carbsPerPortion: number | null;
   fatPerPortion: number | null;
+  sodiumMgPerPortion: number | null;
 };
 
 type Row = {
@@ -99,15 +100,18 @@ export function MealRegistrationForm({
         const servedProtein = food.proteinPerPortion * multiplier;
         const servedCarbs = (food.carbsPerPortion ?? 0) * multiplier;
         const servedFat = (food.fatPerPortion ?? 0) * multiplier;
+        const servedSodium = (food.sodiumMgPerPortion ?? 0) * multiplier;
         return {
           servedKcal: acc.servedKcal + servedKcal,
           servedProtein: acc.servedProtein + servedProtein,
           servedCarbs: acc.servedCarbs + servedCarbs,
           servedFat: acc.servedFat + servedFat,
+          servedSodium: acc.servedSodium + servedSodium,
           consumedKcal: acc.consumedKcal + (servedKcal * percent) / 100,
           consumedProtein: acc.consumedProtein + (servedProtein * percent) / 100,
           consumedCarbs: acc.consumedCarbs + (servedCarbs * percent) / 100,
           consumedFat: acc.consumedFat + (servedFat * percent) / 100,
+          consumedSodium: acc.consumedSodium + (servedSodium * percent) / 100,
         };
       },
       {
@@ -115,10 +119,12 @@ export function MealRegistrationForm({
         servedProtein: 0,
         servedCarbs: 0,
         servedFat: 0,
+        servedSodium: 0,
         consumedKcal: 0,
         consumedProtein: 0,
         consumedCarbs: 0,
         consumedFat: 0,
+        consumedSodium: 0,
       },
     );
   }, [foods, rows]);

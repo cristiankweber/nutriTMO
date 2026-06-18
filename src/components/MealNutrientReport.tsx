@@ -18,6 +18,7 @@ export function MealNutrientReport({ report }: { report: MealNutrientReportData 
             <th className="px-3 py-3 text-right">CHO (g)</th>
             <th className="px-3 py-3 text-right">PTN (g)</th>
             <th className="px-3 py-3 text-right">LIP (g)</th>
+            <th className="px-3 py-3 text-right">Na (mg)</th>
             <th className="px-4 py-3">Observacao</th>
           </tr>
         </thead>
@@ -40,6 +41,7 @@ export function MealNutrientReport({ report }: { report: MealNutrientReportData 
               <td className="px-3 py-3 text-right">{formatNumber(row.totalConsumedCarbs, 1)}</td>
               <td className="px-3 py-3 text-right">{formatNumber(row.totalConsumedProtein, 1)}</td>
               <td className="px-3 py-3 text-right">{formatNumber(row.totalConsumedFat, 1)}</td>
+              <td className="px-3 py-3 text-right">{formatNumber(row.totalConsumedSodium)}</td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-1.5">
                   {buildMealObservationLabels(row).map((observation) => (

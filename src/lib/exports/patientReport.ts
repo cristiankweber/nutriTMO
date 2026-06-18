@@ -31,6 +31,8 @@ type PatientReportMealItem = {
   consumedProtein: number;
   servedFat: number;
   consumedFat: number;
+  servedSodium: number;
+  consumedSodium: number;
   manuallyReviewed: boolean;
   notes: string | null;
 };
@@ -190,6 +192,8 @@ export async function getPatientReportExportData(admissionId: string, dateInput:
         consumedProtein: item.consumedProtein,
         servedFat: item.servedFat,
         consumedFat: item.consumedFat,
+        servedSodium: item.servedSodium,
+        consumedSodium: item.consumedSodium,
         manuallyReviewed: item.manuallyReviewed,
         notes: item.notes,
       })),
@@ -256,7 +260,8 @@ export async function buildPatientReportPdf(data: PatientReportExportData) {
       { header: "CHO", width: 52, align: "right" },
       { header: "PTN", width: 52, align: "right" },
       { header: "LIP", width: 52, align: "right" },
-      { header: "Obs.", width: 159 },
+      { header: "Na (mg)", width: 52, align: "right" },
+      { header: "Obs.", width: 107 },
     ],
     getMealReportRows(data.mealReport).map((row) => [
       row.label,
@@ -265,6 +270,7 @@ export async function buildPatientReportPdf(data: PatientReportExportData) {
       row.totalConsumedCarbs.toFixed(1),
       row.totalConsumedProtein.toFixed(1),
       row.totalConsumedFat.toFixed(1),
+      row.totalConsumedSodium.toFixed(0),
       row.observations.join(", "),
     ]),
   );
@@ -275,7 +281,7 @@ export async function buildPatientReportPdf(data: PatientReportExportData) {
       meal.mealType,
       meal.status,
       item.foodName,
-      `${item.consumedPercent}; ${item.consumedKcal.toFixed(0)} kcal; ${item.consumedProtein.toFixed(1)} g PTN`,
+      `${item.consumedPercent}; ${item.consumedKcal.toFixed(0)} kcal; ${item.consumedProtein.toFixed(1)} g PTN; ${item.consumedSodium.toFixed(0)} mg Na`,
       item.notes ?? meal.notes ?? "-",
     ]),
   );
@@ -319,6 +325,7 @@ function addSummarySheet(workbook: ExcelJS.Workbook, data: PatientReportExportDa
     ["Resumo diario", ""],
     ["Kcal", data.summary ? `${data.summary.totalConsumedKcal.toFixed(0)} de ${data.summary.kcalTarget.toFixed(0)} kcal (${data.summary.kcalTargetPercent.toFixed(0)}%)` : "Sem resumo."],
     ["Proteina", data.summary ? `${data.summary.totalConsumedProtein.toFixed(1)} de ${data.summary.proteinTarget.toFixed(1)} g (${data.summary.proteinTargetPercent.toFixed(0)}%)` : "Sem resumo."],
+    ["Sodio", data.mealReport.total.hasRecord ? `${data.mealReport.total.totalConsumedSodium.toFixed(0)} mg ingeridos no periodo` : "Sem registro de sodio no periodo."],
     ["Alerta", data.summary?.alertLevel ?? "-"],
     ["Texto do resumo diario", data.dailyReportText],
     ["Texto do relatorio por refeicao", data.mealReportText],
@@ -341,6 +348,7 @@ function addMealReportSheet(workbook: ExcelJS.Workbook, data: PatientReportExpor
     { header: "CHO (g)", key: "carbs", width: 12 },
     { header: "PTN (g)", key: "protein", width: 12 },
     { header: "LIP (g)", key: "fat", width: 12 },
+    { header: "Na (mg)", key: "sodium", width: 12 },
     { header: "Observacoes", key: "observations", width: 46 },
   ];
   sheet.addRows(
@@ -351,6 +359,7 @@ function addMealReportSheet(workbook: ExcelJS.Workbook, data: PatientReportExpor
       carbs: row.totalConsumedCarbs,
       protein: row.totalConsumedProtein,
       fat: row.totalConsumedFat,
+      sodium: row.totalConsumedSodium,
       observations: row.observations.join(", "),
     })),
   );
@@ -372,6 +381,7 @@ function addMealItemsSheet(workbook: ExcelJS.Workbook, data: PatientReportExport
     { header: "CHO ingerido (g)", key: "consumedCarbs", width: 16 },
     { header: "PTN ingerida (g)", key: "consumedProtein", width: 16 },
     { header: "LIP ingerido (g)", key: "consumedFat", width: 16 },
+    { header: "Na ingerido (mg)", key: "consumedSodium", width: 16 },
     { header: "Revisado", key: "reviewed", width: 12 },
     { header: "Criado por", key: "createdBy", width: 22 },
     { header: "Revisado por", key: "reviewedBy", width: 22 },
@@ -392,6 +402,7 @@ function addMealItemsSheet(workbook: ExcelJS.Workbook, data: PatientReportExport
         consumedCarbs: item.consumedCarbs,
         consumedProtein: item.consumedProtein,
         consumedFat: item.consumedFat,
+        consumedSodium: item.consumedSodium,
         reviewed: item.manuallyReviewed ? "Sim" : "Nao",
         createdBy: meal.createdByName,
         reviewedBy: meal.reviewedByName ?? "-",

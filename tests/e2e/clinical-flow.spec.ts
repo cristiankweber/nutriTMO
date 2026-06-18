@@ -1,3 +1,5 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { stat } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
@@ -9,6 +11,9 @@ import {
   loginAsAdmin,
   selectByName,
 } from "./helpers";
+
+const e2eDir = path.dirname(fileURLToPath(import.meta.url));
+const demoMealFixture = path.join(e2eDir, "fixtures", "demo-meal.svg");
 
 test("fluxo clinico principal funciona ponta a ponta", async ({ page }) => {
   const consoleProblems = collectConsoleProblems(page);
@@ -44,6 +49,16 @@ test("fluxo clinico principal funciona ponta a ponta", async ({ page }) => {
   await expect(page).toHaveURL(/\/prescriptions\?salvo=1$/);
   await expect(page.getByText("Prescricao atualizada")).toBeVisible();
   await expect(page.getByText(dietName)).toBeVisible();
+  const prescriptionDetails = page.locator("details").filter({ hasText: dietName });
+  await prescriptionDetails.locator("summary").click();
+  const editPrescriptionForm = prescriptionDetails.locator("form").filter({
+    has: prescriptionDetails.getByRole("button", { name: "Salvar alteracoes" }),
+  });
+  await fillByName(editPrescriptionForm, "kcalTarget", "1950");
+  await fillByName(editPrescriptionForm, "proteinTarget", "88");
+  await editPrescriptionForm.getByRole("button", { name: "Salvar alteracoes" }).click();
+  await expect(page).toHaveURL(/\/prescriptions\?salvo=1$/);
+  await expect(page.getByText("1950")).toBeVisible();
   await expectNoFrameworkOverlay(page);
 
   await page.goto("/menu");
@@ -72,9 +87,11 @@ test("fluxo clinico principal funciona ponta a ponta", async ({ page }) => {
   await selectByName(mealForm, "imageQuality", "INADEQUADA");
   await selectByName(mealForm, "confidence", "BAIXA");
   await fillByName(mealForm, "notes", mealNote);
+  await mealForm.locator('input[name="preMealImage"]').setInputFiles(demoMealFixture);
   await page.getByRole("button", { name: "Marcar para revisao da nutricao" }).click();
   await expect(page).toHaveURL(/\/patients\/.+\?refeicao=salva$/);
   await expect(page.getByText("Ingesta registrada, resumo diario recalculado e auditoria atualizada.")).toBeVisible();
+  await expect(page.getByAltText("Foto pre-refeicao")).toBeVisible();
   const patientUrl = page.url().split("?")[0];
   await expectNoFrameworkOverlay(page);
 

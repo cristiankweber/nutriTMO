@@ -6,7 +6,7 @@ import { mealReportLabels } from "@/components/MealNutrientReport";
 import { MealPhotos } from "@/components/MealPhotos";
 import { NutritionProgress } from "@/components/NutritionProgress";
 import { StatusBadge } from "@/components/StatusBadge";
-import { cancelMealAction } from "@/lib/actions";
+import { cancelMealAction, updateClinicalNotesAction } from "@/lib/actions";
 import { canExportPatientReports, canRegisterMeals, canReviewMeals, canViewClinicalRecord } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
 import { buildMealNutrientReport } from "@/lib/clinical/calculations";
@@ -33,7 +33,7 @@ export default async function PatientAdmissionPage({
   searchParams,
 }: {
   params: Promise<{ admissionId: string }>;
-  searchParams: Promise<{ admissao?: string; cancelada?: string; refeicao?: string }>;
+  searchParams: Promise<{ admissao?: string; cancelada?: string; refeicao?: string; observacoes?: string }>;
 }) {
   const user = await requireUser();
   if (!canViewClinicalRecord(user.role)) {
@@ -133,6 +133,11 @@ export default async function PatientAdmissionPage({
           Ingesta registrada, resumo diario recalculado e auditoria atualizada.
         </div>
       ) : null}
+      {feedback.observacoes ? (
+        <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-900">
+          Observacoes clinicas atualizadas e trilha de auditoria registrada.
+        </div>
+      ) : null}
       {feedback.cancelada ? (
         <div className="mb-4 rounded-md border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-900">
           Refeicao cancelada sem exclusao de dados; historico e auditoria preservados.
@@ -161,24 +166,31 @@ export default async function PatientAdmissionPage({
             {todaySummary ? <StatusBadge level={todaySummary.alertLevel} /> : null}
           </div>
           {todaySummary ? (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <NutritionProgress
-                label="Meta calorica"
-                consumed={todaySummary.totalConsumedKcal}
-                target={todaySummary.kcalTarget}
-                percent={todaySummary.kcalTargetPercent}
-                unit="kcal"
-                tone="kcal"
-              />
-              <NutritionProgress
-                label="Meta proteica"
-                consumed={todaySummary.totalConsumedProtein}
-                target={todaySummary.proteinTarget}
-                percent={todaySummary.proteinTargetPercent}
-                unit="g"
-                precision={1}
-                tone="protein"
-              />
+            <div className="mt-3 space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <NutritionProgress
+                  label="Meta calorica"
+                  consumed={todaySummary.totalConsumedKcal}
+                  target={todaySummary.kcalTarget}
+                  percent={todaySummary.kcalTargetPercent}
+                  unit="kcal"
+                  tone="kcal"
+                />
+                <NutritionProgress
+                  label="Meta proteica"
+                  consumed={todaySummary.totalConsumedProtein}
+                  target={todaySummary.proteinTarget}
+                  percent={todaySummary.proteinTargetPercent}
+                  unit="g"
+                  precision={1}
+                  tone="protein"
+                />
+              </div>
+              {mealNutrientReport.total.hasRecord ? (
+                <p className="text-sm text-stone-600">
+                  Sodio ingerido hoje: <span className="font-semibold text-stone-900">{mealNutrientReport.total.totalConsumedSodium.toFixed(0)} mg</span>
+                </p>
+              ) : null}
             </div>
           ) : (
             <p className="mt-3 text-sm text-stone-600">Sem resumo gerado para hoje.</p>
@@ -186,7 +198,23 @@ export default async function PatientAdmissionPage({
         </div>
         <div className="rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
           <h2 className="font-semibold">Observacoes clinicas</h2>
-          <p className="mt-3 text-sm text-stone-600">{admission.clinicalNotes ?? "Nenhuma observacao clinica registrada no demo."}</p>
+          {admission.active ? (
+            <form action={updateClinicalNotesAction} className="mt-3 space-y-3">
+              <input type="hidden" name="admissionId" value={admissionId} />
+              <textarea
+                name="clinicalNotes"
+                defaultValue={admission.clinicalNotes ?? ""}
+                rows={4}
+                placeholder="Ex.: alto risco nutricional, restricoes ou contexto clinico ficticio para demo."
+                className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm"
+              />
+              <button type="submit" className="rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900">
+                Salvar observacoes
+              </button>
+            </form>
+          ) : (
+            <p className="mt-3 text-sm text-stone-600">{admission.clinicalNotes ?? "Nenhuma observacao clinica registrada no demo."}</p>
+          )}
         </div>
       </div>
 

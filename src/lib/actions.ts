@@ -20,6 +20,7 @@ import {
   canManagePrescriptions,
   canRegisterMeals,
   canReviewMeals,
+  canViewClinicalRecord,
   canViewReports,
 } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
@@ -29,9 +30,11 @@ import {
   calculateConsumedFat,
   calculateConsumedKcal,
   calculateConsumedProtein,
+  calculateConsumedSodium,
   calculateMealItemNutrition,
   consumedPercentToValue,
 } from "@/lib/clinical/calculations";
+import { hasHighRiskClinicalNote } from "@/lib/clinical/clinicalNotes";
 import {
   canCancelMealStatus,
   canReviewMealStatus,
@@ -137,7 +140,7 @@ export async function refreshDailySummary(admissionId: string, date: Date) {
     missingCriticalMealsCount,
     hasInadequatePhotoWithoutReview,
     previousDayHadLowIntake,
-    hasHighRiskClinicalNote: admission.clinicalNotes?.toLowerCase().includes("alto risco") ?? false,
+    hasHighRiskClinicalNote: hasHighRiskClinicalNote(admission.clinicalNotes),
   });
 
   return db.nutritionDailySummary.upsert({
@@ -344,6 +347,7 @@ export async function createMealAction(formData: FormData) {
       proteinPerPortion: food.proteinPerPortion,
       carbsPerPortion: food.carbsPerPortion,
       fatPerPortion: food.fatPerPortion,
+      sodiumMgPerPortion: food.sodiumMgPerPortion,
       servedPortionMultiplier: Number.isFinite(multiplier) ? multiplier : 1,
       consumedPercent: consumedPercentToValue[consumedPercent],
     });
@@ -439,6 +443,7 @@ export async function reviewMealAction(formData: FormData) {
         consumedProtein: calculateConsumedProtein(item.servedProtein, consumedPercentToValue[consumedPercent]),
         consumedCarbs: calculateConsumedCarbs(item.servedCarbs, consumedPercentToValue[consumedPercent]),
         consumedFat: calculateConsumedFat(item.servedFat, consumedPercentToValue[consumedPercent]),
+        consumedSodium: calculateConsumedSodium(item.servedSodium, consumedPercentToValue[consumedPercent]),
         manuallyReviewed: true,
         notes: optionalString(formData, `notes-${item.id}`),
       },
@@ -508,6 +513,35 @@ export async function cancelMealAction(formData: FormData) {
   revalidatePath("/reports");
   revalidatePath("/audit");
   redirect(`/patients/${after.admissionId}?cancelada=1`);
+}
+
+export async function updateClinicalNotesAction(formData: FormData) {
+  const user = await requireUser();
+  assertAllowed(canViewClinicalRecord(user.role));
+
+  const admissionId = requiredString(formData, "admissionId");
+  const admission = await db.admission.findUnique({ where: { id: admissionId } });
+  if (!admission?.active) throw new Error("Apenas admissoes ativas podem receber observacoes clinicas.");
+
+  const clinicalNotes = optionalString(formData, "clinicalNotes");
+  const before = { clinicalNotes: admission.clinicalNotes };
+  const after = await db.admission.update({
+    where: { id: admissionId },
+    data: { clinicalNotes },
+  });
+
+  await writeAuditLog({
+    userId: user.id,
+    entityType: "Admission",
+    entityId: admissionId,
+    action: "UPDATE",
+    beforeJson: before,
+    afterJson: { clinicalNotes: after.clinicalNotes },
+  });
+  await refreshDailySummary(admissionId, startOfLocalDay());
+  revalidatePath(`/patients/${admissionId}`);
+  revalidatePath("/dashboard");
+  redirect(`/patients/${admissionId}?observacoes=salvas`);
 }
 
 export async function logReportExportAction(formData: FormData) {

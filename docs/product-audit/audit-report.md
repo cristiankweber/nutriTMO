@@ -79,7 +79,9 @@ Arquivos principais:
 
 ### P1 - Erro bruto de permissao em `/audit`
 
-Evidencia: `screenshots/15-audit-forbidden-nutricao.png`
+**Status: resolvido em 2026-06-17.** A pagina [`src/app/audit/page.tsx`](../src/app/audit/page.tsx) renderiza `Acesso restrito` para perfis sem `canViewAudit`, com link de retorno ao dashboard. Coberto por E2E em `tests/e2e/governance-permissions.spec.ts`.
+
+Evidencia original: `screenshots/15-audit-forbidden-nutricao.png`
 
 Ao acessar `/audit` com perfil `NUTRICAO`, o produto exibe o overlay de erro runtime do Next.js com a mensagem `Perfil sem permissao para auditoria.`. Este e um erro esperado de autorizacao e nao deveria chegar ao usuario como falha tecnica.
 

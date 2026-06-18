@@ -56,6 +56,7 @@ export default async function NewMealPage() {
             proteinPerPortion: food.proteinPerPortion,
             carbsPerPortion: food.carbsPerPortion,
             fatPerPortion: food.fatPerPortion,
+            sodiumMgPerPortion: food.sodiumMgPerPortion,
           }))}
         />
       )}

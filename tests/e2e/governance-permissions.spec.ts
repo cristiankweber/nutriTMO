@@ -5,7 +5,20 @@ import {
   expectNoConsoleProblems,
   expectNoFrameworkOverlay,
   loginAs,
+  nutritionEmail,
 } from "./helpers";
+
+test("nutricao fica bloqueada em auditoria com estado controlado", async ({ page }) => {
+  const consoleProblems = collectConsoleProblems(page);
+
+  await loginAs(page, nutritionEmail);
+  await page.goto("/audit");
+  await expect(page.getByRole("heading", { name: "Acesso restrito" })).toBeVisible();
+  await expect(page.locator("body")).toContainText("auditoria fica na area de Governanca");
+  await expect(page.getByRole("link", { name: "Voltar para Atendimento" })).toBeVisible();
+  await expectNoFrameworkOverlay(page);
+  await expectNoConsoleProblems(consoleProblems);
+});
 
 test("auditor fica restrito a auditoria e governanca", async ({ page }) => {
   const consoleProblems = collectConsoleProblems(page);

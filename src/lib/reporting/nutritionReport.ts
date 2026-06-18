@@ -84,7 +84,7 @@ export const buildMealReportText = ({ date, report }: { date: Date; report: Meal
     ? `O maior aporte proteico ocorreu na refeicao ${highestProteinName}, com ${report.highestProteinMeal.totalConsumedProtein.toFixed(1)} g de proteina. `
     : "";
 
-  return `Resumo nutricional oral em ${formatDate(date)}: ingesta total estimada de ${report.total.totalConsumedKcal.toFixed(0)} kcal, ${report.total.totalConsumedCarbs.toFixed(1)} g de carboidratos, ${report.total.totalConsumedProtein.toFixed(1)} g de proteinas e ${report.total.totalConsumedFat.toFixed(1)} g de lipidios. ${lowestKcalText}${lowestProteinText}${highestKcalText}${highestProteinText}Dados revisados utilizados quando disponiveis.`;
+  return `Resumo nutricional oral em ${formatDate(date)}: ingesta total estimada de ${report.total.totalConsumedKcal.toFixed(0)} kcal, ${report.total.totalConsumedCarbs.toFixed(1)} g de carboidratos, ${report.total.totalConsumedProtein.toFixed(1)} g de proteinas, ${report.total.totalConsumedFat.toFixed(1)} g de lipidios e ${report.total.totalConsumedSodium.toFixed(0)} mg de sodio. ${lowestKcalText}${lowestProteinText}${highestKcalText}${highestProteinText}Dados revisados utilizados quando disponiveis.`;
 };
 
 export const getMealReportRows = (report: MealNutrientReport) =>

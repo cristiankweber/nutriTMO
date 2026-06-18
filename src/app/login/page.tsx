@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { loginAction } from "@/lib/auth/actions";
+import { DemoLoginShortcuts } from "@/components/DemoLoginShortcuts";
 import { defaultRouteForRole } from "@/lib/auth/permissions";
 import { getSessionUser } from "@/lib/auth/session";
 
@@ -34,6 +35,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           </label>
           <button className="w-full rounded-md bg-emerald-800 px-4 py-2 font-semibold text-white transition-colors hover:bg-emerald-900">Entrar</button>
         </form>
+        <DemoLoginShortcuts />
         <div className="mt-5 rounded-md bg-stone-50 p-3 text-xs leading-5 text-stone-600">
           Usuarios demo: admin, nutricao, enfermagem, medico ou auditor em <code>@nutritmo.local</code>. Senha: <code>nutritmo123</code>.
         </div>

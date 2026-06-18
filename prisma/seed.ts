@@ -22,6 +22,7 @@ import {
   calculateConsumedFat,
   calculateConsumedKcal,
   calculateConsumedProtein,
+  calculateConsumedSodium,
   calculateMealItemNutrition,
   consumedPercentToValue,
 } from "../src/lib/clinical/calculations";
@@ -67,6 +68,7 @@ const createMealItem = (
     proteinPerPortion: number;
     carbsPerPortion: number | null;
     fatPerPortion: number | null;
+    sodiumMgPerPortion: number | null;
   },
   multiplier: number,
   percent: ConsumedPercent,
@@ -76,6 +78,7 @@ const createMealItem = (
     proteinPerPortion: foodItem.proteinPerPortion,
     carbsPerPortion: foodItem.carbsPerPortion,
     fatPerPortion: foodItem.fatPerPortion,
+    sodiumMgPerPortion: foodItem.sodiumMgPerPortion,
     servedPortionMultiplier: multiplier,
     consumedPercent: consumedPercentToValue[percent],
   });
@@ -398,6 +401,7 @@ const main = async () => {
             consumedProtein: calculateConsumedProtein(item.servedProtein, 50),
             consumedCarbs: calculateConsumedCarbs(item.servedCarbs, 50),
             consumedFat: calculateConsumedFat(item.servedFat, 50),
+            consumedSodium: calculateConsumedSodium(item.servedSodium, 50),
             manuallyReviewed: false,
           })),
         };

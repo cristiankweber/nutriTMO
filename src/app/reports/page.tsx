@@ -126,6 +126,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         </div>
       ) : null}
 
+      {selectedAdmissionId && summary ? (
+        <div className="mb-5 sm:hidden">
+          <CopyableReport admissionId={selectedAdmissionId} text={reportText} title="Copiar resumo diario" />
+        </div>
+      ) : null}
+
       {patientReportExportHref && canExportPatientReports(user.role) ? (
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
           <div>
@@ -158,7 +164,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       </section>
 
       <div className="grid gap-5 xl:grid-cols-2">
-        {selectedAdmissionId ? <CopyableReport admissionId={selectedAdmissionId} text={reportText} title="Texto do resumo diario" /> : null}
+        {selectedAdmissionId ? (
+          <div className="hidden sm:block">
+            <CopyableReport admissionId={selectedAdmissionId} text={reportText} title="Texto do resumo diario" />
+          </div>
+        ) : null}
         {selectedAdmissionId ? <CopyableReport admissionId={selectedAdmissionId} text={mealReportText} title="Texto do relatorio por refeicao" /> : null}
       </div>
     </AppShell>

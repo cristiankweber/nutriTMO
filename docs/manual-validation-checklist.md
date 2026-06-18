@@ -13,7 +13,8 @@ Use apenas dados ficticios do seed ou registros demo. Nao usar pacientes, prontu
 ## Login e permissoes
 
 - [ ] 6. Login como nutricao (`nutricao@nutritmo.local`).
-- [ ] 7. Confirmar acesso a dashboard, pacientes, cardapio, prescricoes, registro, revisao, relatorios e auditoria.
+- [ ] 7. Confirmar acesso a dashboard, pacientes, cardapio, prescricoes, registro, revisao e relatorios.
+- [ ] 7b. Confirmar que nutricao **nao** acessa `Auditoria` (deve ver `Acesso restrito`, sem erro tecnico).
 - [ ] 8. Login como auditor (`auditor@nutritmo.local`).
 - [ ] 9. Confirmar que auditor acessa `Auditoria` e `Governanca`, mas fica bloqueado em dashboard, detalhe clinico, imagens e relatorios.
 

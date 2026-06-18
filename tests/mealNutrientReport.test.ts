@@ -7,10 +7,11 @@ const finalizedMeal = (
   consumedCarbs: number,
   consumedProtein: number,
   consumedFat: number,
+  consumedSodium = 0,
 ): MealNutrientReportMealInput => ({
   mealType,
   status: "FINALIZADA",
-  items: [{ consumedKcal, consumedCarbs, consumedProtein, consumedFat }],
+  items: [{ consumedKcal, consumedCarbs, consumedProtein, consumedFat, consumedSodium }],
 });
 
 describe("relatorio nutricional por refeicao", () => {
@@ -34,7 +35,18 @@ describe("relatorio nutricional por refeicao", () => {
       totalConsumedCarbs: 219,
       totalConsumedProtein: 40,
       totalConsumedFat: 49,
+      totalConsumedSodium: 0,
     });
+  });
+
+  it("soma sodio por refeicao e total diario", () => {
+    const report = buildMealNutrientReport([
+      finalizedMeal("CAFE_MANHA", 257, 31, 7, 11, 320),
+      finalizedMeal("ALMOCO", 340, 44, 19, 6, 540),
+    ]);
+
+    expect(report.rows.find((row) => row.mealType === "ALMOCO")).toMatchObject({ totalConsumedSodium: 540 });
+    expect(report.total.totalConsumedSodium).toBe(860);
   });
 
   it("identifica menor kcal, menor proteina, maior kcal e maior proteina", () => {

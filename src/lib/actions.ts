@@ -1,6 +1,5 @@
 "use server";
 
-import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
@@ -15,13 +14,15 @@ import {
 import { writeAuditLog } from "@/lib/audit";
 import {
   assertAllowed,
+  canManageGovernance,
   canManageMenu,
   canManagePatients,
   canManagePrescriptions,
   canRegisterMeals,
   canReviewMeals,
+  canViewReports,
 } from "@/lib/auth/permissions";
-import { clearSessionCookie, requireUser, setSessionCookie } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/session";
 import {
   buildDailySummary,
   calculateConsumedCarbs,
@@ -31,10 +32,17 @@ import {
   calculateMealItemNutrition,
   consumedPercentToValue,
 } from "@/lib/clinical/calculations";
-import { addDays, startOfLocalDay } from "@/lib/dates";
+import {
+  canCancelMealStatus,
+  canReviewMealStatus,
+  effectivePrescriptionCutoff,
+  getAffectedSummaryDatesForPrescriptionChange,
+} from "@/lib/clinical/operationalRules";
+import { addDays, localDayRange, startOfLocalDay } from "@/lib/dates";
 import { db } from "@/lib/db";
 import { buildReviewMetadata } from "@/lib/review/rules";
 import { storeLocalImage } from "@/lib/storage/local";
+import { purgeExpiredLocalImages } from "@/lib/storage/retention";
 
 const requiredString = (formData: FormData, key: string) => {
   const value = formData.get(key);
@@ -72,19 +80,28 @@ const safePercent = (value: FormDataEntryValue | null): ConsumedPercent => {
   return "ZERO";
 };
 
-const dayRange = (date: Date) => {
-  const start = startOfLocalDay(date);
-  return { start, end: addDays(start, 1) };
-};
-
 const criticalMealTypes: MealType[] = ["CAFE_MANHA", "ALMOCO", "JANTAR"];
 
+const requireActiveAdmission = async (admissionId: string) => {
+  const admission = await db.admission.findUnique({ where: { id: admissionId } });
+  if (!admission?.active) throw new Error("Apenas admissoes ativas podem receber registros clinicos.");
+  return admission;
+};
+
+const assertMealCanBeReviewed = (status: MealStatus) => {
+  if (!canReviewMealStatus(status)) throw new Error("Esta refeicao nao pode ser revisada no estado atual.");
+};
+
+const assertMealCanBeCancelled = (status: MealStatus) => {
+  if (!canCancelMealStatus(status)) throw new Error("Esta refeicao ja esta cancelada.");
+};
+
 export async function refreshDailySummary(admissionId: string, date: Date) {
-  const { start, end } = dayRange(date);
+  const { start, end } = localDayRange(date);
   const [admission, prescription, meals, previousSummary] = await Promise.all([
     db.admission.findUnique({ where: { id: admissionId } }),
     db.nutritionPrescription.findFirst({
-      where: { admissionId, date: { lte: end } },
+      where: { admissionId, date: { lte: effectivePrescriptionCutoff(start) } },
       orderBy: { date: "desc" },
     }),
     db.meal.findMany({
@@ -142,34 +159,37 @@ export async function refreshDailySummary(admissionId: string, date: Date) {
   });
 }
 
-export async function loginAction(formData: FormData) {
-  const email = requiredString(formData, "email").toLowerCase();
-  const password = requiredString(formData, "password");
-  const user = await db.user.findUnique({ where: { email } });
+async function refreshDailySummariesForPrescriptionChange(admissionId: string, dates: Date[]) {
+  const today = startOfLocalDay();
+  const startDates = dates.map(startOfLocalDay).sort((a, b) => a.getTime() - b.getTime());
+  const fromDate = startDates[0];
+  if (!fromDate || fromDate.getTime() > today.getTime()) return [];
 
-  if (!user || !(await bcrypt.compare(password, user.passwordHash))) {
-    redirect("/login?erro=credenciais");
+  const throughDate = today;
+  const [existingSummaries, meals] = await Promise.all([
+    db.nutritionDailySummary.findMany({
+      where: { admissionId, date: { gte: fromDate, lte: throughDate } },
+      select: { date: true },
+    }),
+    db.meal.findMany({
+      where: { admissionId, date: { gte: fromDate, lt: addDays(throughDate, 1) } },
+      select: { date: true },
+    }),
+  ]);
+
+  const datesToRefresh = getAffectedSummaryDatesForPrescriptionChange({
+    fromDate,
+    throughDate,
+    existingSummaryDates: existingSummaries.map((summary) => summary.date),
+    mealDates: meals.map((meal) => meal.date),
+  });
+
+  const refreshedDates: Date[] = [];
+  for (const summaryDate of datesToRefresh) {
+    const summary = await refreshDailySummary(admissionId, summaryDate);
+    if (summary) refreshedDates.push(summary.date);
   }
-
-  await setSessionCookie({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  });
-  await writeAuditLog({
-    userId: user.id,
-    entityType: "User",
-    entityId: user.id,
-    action: "LOGIN",
-    afterJson: { email: user.email, role: user.role },
-  });
-  redirect("/dashboard");
-}
-
-export async function logoutAction() {
-  await clearSessionCookie();
-  redirect("/login");
+  return refreshedDates;
 }
 
 export async function createFoodItemAction(formData: FormData) {
@@ -225,10 +245,14 @@ export async function createPrescriptionAction(formData: FormData) {
   const user = await requireUser();
   assertAllowed(canManagePrescriptions(user.role));
 
+  const admissionId = requiredString(formData, "admissionId");
+  const date = dateField(formData, "date");
+  await requireActiveAdmission(admissionId);
+
   const prescription = await db.nutritionPrescription.create({
     data: {
-      admissionId: requiredString(formData, "admissionId"),
-      date: dateField(formData, "date"),
+      admissionId,
+      date,
       dietType: requiredString(formData, "dietType"),
       consistency: requiredString(formData, "consistency"),
       restrictions: optionalString(formData, "restrictions"),
@@ -248,7 +272,7 @@ export async function createPrescriptionAction(formData: FormData) {
     action: "CREATE",
     afterJson: prescription,
   });
-  await refreshDailySummary(prescription.admissionId, prescription.date);
+  await refreshDailySummariesForPrescriptionChange(prescription.admissionId, [prescription.date]);
   revalidatePath("/prescriptions");
   revalidatePath("/dashboard");
   revalidatePath(`/patients/${prescription.admissionId}`);
@@ -262,6 +286,7 @@ export async function updatePrescriptionAction(formData: FormData) {
 
   const id = requiredString(formData, "id");
   const before = await db.nutritionPrescription.findUniqueOrThrow({ where: { id } });
+  await requireActiveAdmission(before.admissionId);
   const after = await db.nutritionPrescription.update({
     where: { id },
     data: {
@@ -285,10 +310,7 @@ export async function updatePrescriptionAction(formData: FormData) {
     beforeJson: before,
     afterJson: after,
   });
-  await refreshDailySummary(after.admissionId, after.date);
-  if (before.date.getTime() !== after.date.getTime()) {
-    await refreshDailySummary(before.admissionId, before.date);
-  }
+  await refreshDailySummariesForPrescriptionChange(after.admissionId, [before.date, after.date]);
   revalidatePath("/prescriptions");
   revalidatePath("/dashboard");
   revalidatePath(`/patients/${after.admissionId}`);
@@ -302,6 +324,7 @@ export async function createMealAction(formData: FormData) {
 
   const admissionId = requiredString(formData, "admissionId");
   const date = dateField(formData, "date");
+  await requireActiveAdmission(admissionId);
   const foodItemIds = formData.getAll("foodItemId").filter((value): value is string => typeof value === "string" && value !== "");
   const multipliers = formData.getAll("servedPortionMultiplier");
   const percents = formData.getAll("consumedPercent");
@@ -309,11 +332,11 @@ export async function createMealAction(formData: FormData) {
 
   if (foodItemIds.length === 0) throw new Error("Adicione ao menos um item servido.");
 
-  const foods = await db.foodItem.findMany({ where: { id: { in: foodItemIds } } });
+  const foods = await db.foodItem.findMany({ where: { id: { in: foodItemIds }, active: true } });
   const foodById = new Map(foods.map((food) => [food.id, food]));
   const mealItems = foodItemIds.map((foodItemId, index) => {
     const food = foodById.get(foodItemId);
-    if (!food) throw new Error("Item da base alimentar nao encontrado.");
+    if (!food) throw new Error("Item da base alimentar inativo ou nao encontrado.");
     const multiplier = Number(String(multipliers[index] ?? "1").replace(",", "."));
     const consumedPercent = safePercent(percents[index] ?? null);
     const nutrition = calculateMealItemNutrition({
@@ -404,6 +427,7 @@ export async function reviewMealAction(formData: FormData) {
 
   const mealId = requiredString(formData, "mealId");
   const before = await db.meal.findUniqueOrThrow({ where: { id: mealId }, include: { items: true } });
+  assertMealCanBeReviewed(before.status);
 
   for (const item of before.items) {
     const consumedPercent = safePercent(formData.get(`percent-${item.id}`));
@@ -458,6 +482,7 @@ export async function cancelMealAction(formData: FormData) {
 
   const mealId = requiredString(formData, "mealId");
   const before = await db.meal.findUniqueOrThrow({ where: { id: mealId }, include: { items: true } });
+  assertMealCanBeCancelled(before.status);
   const after = await db.meal.update({
     where: { id: mealId },
     data: {
@@ -487,6 +512,7 @@ export async function cancelMealAction(formData: FormData) {
 
 export async function logReportExportAction(formData: FormData) {
   const user = await requireUser();
+  assertAllowed(canViewReports(user.role));
   const admissionId = requiredString(formData, "admissionId");
   await writeAuditLog({
     userId: user.id,
@@ -498,34 +524,97 @@ export async function logReportExportAction(formData: FormData) {
   revalidatePath("/audit");
 }
 
+export async function purgeExpiredImagesAction() {
+  const user = await requireUser();
+  assertAllowed(canManageGovernance(user.role));
+
+  const result = await purgeExpiredLocalImages();
+  await writeAuditLog({
+    userId: user.id,
+    entityType: "ImageAssetRetention",
+    entityId: "local-storage",
+    action: "DELETE",
+    afterJson: {
+      retentionDays: result.retentionDays,
+      cutoff: result.cutoff.toISOString(),
+      scanned: result.scanned,
+      deletedMetadata: result.deletedMetadata,
+      deletedFiles: result.deletedFiles,
+      missingFiles: result.missingFiles,
+      skippedUnsafeFiles: result.skippedUnsafeFiles,
+      clearedMealReferences: result.clearedMealReferences,
+    },
+  });
+  revalidatePath("/governance");
+  revalidatePath("/audit");
+  revalidatePath("/dashboard");
+  revalidatePath("/reports");
+  redirect("/governance?retencao=limpa");
+}
+
 export async function createPatientAdmissionAction(formData: FormData) {
   const user = await requireUser();
   assertAllowed(canManagePatients(user.role));
 
-  const internalCode = requiredString(formData, "internalCode");
+  const selectedPatientId = optionalString(formData, "patientId");
+  const internalCode = optionalString(formData, "internalCode");
   const bedId = requiredString(formData, "bedId");
   const admissionDate = dateField(formData, "admissionDate");
   const transplantType = (optionalString(formData, "transplantType") ?? "NAO_INFORMADO") as import("@/generated/prisma/enums").TransplantType;
   const transplantDay = optionalString(formData, "transplantDay");
   const clinicalNotes = optionalString(formData, "clinicalNotes");
 
-  const existing = await db.patient.findUnique({ where: { internalCode } });
-  if (existing) throw new Error("Ja existe paciente com este codigo interno.");
+  const bed = await db.bed.findUnique({ where: { id: bedId } });
+  if (!bed?.active) throw new Error("Leito inativo ou inexistente.");
 
   const conflictingAdmission = await db.admission.findFirst({ where: { bedId, active: true } });
   if (conflictingAdmission) throw new Error("Leito ja ocupado por admissao ativa.");
 
-  const patient = await db.patient.create({ data: { internalCode } });
+  const patient = selectedPatientId
+    ? await db.patient.findUnique({ where: { id: selectedPatientId }, include: { admissions: { where: { active: true }, take: 1 } } })
+    : null;
+
+  if (selectedPatientId && !patient) throw new Error("Paciente inativo nao encontrado.");
+  if (patient?.admissions.length) throw new Error("Paciente ja possui admissao ativa.");
+  const newPatientInternalCode = patient ? null : internalCode ?? requiredString(formData, "internalCode");
+  if (newPatientInternalCode) {
+    const duplicatedPatient = await db.patient.findUnique({ where: { internalCode: newPatientInternalCode } });
+    if (duplicatedPatient) throw new Error("Ja existe paciente com este codigo interno. Se estiver inativo, selecione-o na lista.");
+  }
+
+  const admittedPatient = patient
+    ? await db.patient.update({ where: { id: patient.id }, data: { active: true } })
+    : await db.patient.create({
+        data: {
+          internalCode: newPatientInternalCode!,
+          active: true,
+        },
+      });
+
   const admission = await db.admission.create({
-    data: { patientId: patient.id, bedId, admissionDate, transplantType, transplantDay, clinicalNotes, active: true },
+    data: { patientId: admittedPatient.id, bedId, admissionDate, transplantType, transplantDay, clinicalNotes, active: true },
   });
+
+  if (patient && !patient.active) {
+    await writeAuditLog({
+      userId: user.id,
+      entityType: "Patient",
+      entityId: patient.id,
+      action: "UPDATE",
+      beforeJson: { active: patient.active },
+      afterJson: { active: true, reason: "READMISSION" },
+    });
+  }
 
   await writeAuditLog({
     userId: user.id,
     entityType: "Admission",
     entityId: admission.id,
     action: "CREATE",
-    afterJson: { patient: { internalCode }, admission: { bedId, admissionDate, transplantType, transplantDay } },
+    afterJson: {
+      patient: { internalCode: admittedPatient.internalCode, reusedInactivePatient: Boolean(patient) },
+      admission: { bedId, bedName: bed.name, admissionDate, transplantType, transplantDay },
+    },
   });
 
   revalidatePath("/patients");
@@ -538,12 +627,78 @@ export async function dischargeAdmissionAction(formData: FormData) {
   assertAllowed(canManagePatients(user.role));
 
   const admissionId = requiredString(formData, "admissionId");
-  const before = await db.admission.findUniqueOrThrow({ where: { id: admissionId } });
+  const before = await db.admission.findUniqueOrThrow({ where: { id: admissionId }, include: { bed: true, patient: true } });
+  if (!before.active) throw new Error("Esta admissao ja esta inativa.");
   const dischargeDate = dateField(formData, "dischargeDate");
 
   const after = await db.admission.update({
     where: { id: admissionId },
     data: { active: false, dischargeDate },
+  });
+  const remainingActiveAdmissions = await db.admission.count({
+    where: { patientId: before.patientId, active: true, id: { not: admissionId } },
+  });
+
+  if (remainingActiveAdmissions === 0 && before.patient.active) {
+    await db.patient.update({ where: { id: before.patientId }, data: { active: false } });
+    await writeAuditLog({
+      userId: user.id,
+      entityType: "Patient",
+      entityId: before.patientId,
+      action: "UPDATE",
+      beforeJson: { active: true },
+      afterJson: { active: false, reason: "DISCHARGE_WITHOUT_ACTIVE_ADMISSION" },
+    });
+  }
+
+  await writeAuditLog({
+    userId: user.id,
+    entityType: "Admission",
+    entityId: admissionId,
+    action: "UPDATE",
+    beforeJson: { active: before.active, dischargeDate: before.dischargeDate, bedId: before.bedId, bedName: before.bed.name },
+    afterJson: {
+      active: after.active,
+      dischargeDate: after.dischargeDate,
+      patientActive: remainingActiveAdmissions > 0,
+    },
+  });
+
+  revalidatePath("/patients");
+  revalidatePath("/dashboard");
+  revalidatePath(`/patients/${admissionId}`);
+  redirect("/patients?secao=alta&status=ativas");
+}
+
+export async function transferAdmissionBedAction(formData: FormData) {
+  const user = await requireUser();
+  assertAllowed(canManagePatients(user.role));
+
+  const admissionId = requiredString(formData, "admissionId");
+  const newBedId = requiredString(formData, "newBedId");
+  const before = await db.admission.findUniqueOrThrow({
+    where: { id: admissionId },
+    include: { bed: true, patient: true },
+  });
+
+  if (!before.active) throw new Error("Apenas admissoes ativas podem trocar de leito.");
+  if (before.bedId === newBedId) throw new Error("Selecione um leito diferente do atual.");
+
+  const targetBed = await db.bed.findUnique({ where: { id: newBedId } });
+  if (!targetBed?.active) throw new Error("Leito de destino inativo ou inexistente.");
+
+  const conflictingAdmission = await db.admission.findFirst({
+    where: { bedId: newBedId, active: true, id: { not: admissionId } },
+    include: { patient: true },
+  });
+  if (conflictingAdmission) {
+    throw new Error(`Leito ja ocupado por ${conflictingAdmission.patient.internalCode}.`);
+  }
+
+  const after = await db.admission.update({
+    where: { id: admissionId },
+    data: { bedId: newBedId },
+    include: { bed: true, patient: true },
   });
 
   await writeAuditLog({
@@ -551,11 +706,21 @@ export async function dischargeAdmissionAction(formData: FormData) {
     entityType: "Admission",
     entityId: admissionId,
     action: "UPDATE",
-    beforeJson: { active: before.active, dischargeDate: before.dischargeDate },
-    afterJson: { active: after.active, dischargeDate: after.dischargeDate },
+    beforeJson: {
+      patientCode: before.patient.internalCode,
+      bedId: before.bedId,
+      bedName: before.bed.name,
+    },
+    afterJson: {
+      patientCode: after.patient.internalCode,
+      bedId: after.bedId,
+      bedName: after.bed.name,
+      reason: "BED_TRANSFER",
+    },
   });
 
   revalidatePath("/patients");
   revalidatePath("/dashboard");
-  redirect("/patients?secao=alta");
+  revalidatePath(`/patients/${admissionId}`);
+  redirect("/patients?secao=transferencia&status=ativas");
 }

@@ -183,6 +183,47 @@ const main = async () => {
     ),
   );
 
+  const inactivePatient = await prisma.patient.create({
+    data: {
+      internalCode: "TMO-900",
+      displayName: "Caso demonstrativo com alta",
+      active: false,
+    },
+  });
+  const dischargedAdmission = await prisma.admission.create({
+    data: {
+      patientId: inactivePatient.id,
+      bedId: beds[5].id,
+      admissionDate: addDays(today, -22),
+      dischargeDate: addDays(today, -3),
+      transplantType: TransplantType.ALOGENICO,
+      transplantDay: "D+18",
+      clinicalNotes: "Historico ficticio de alta para demonstrar filtro de pacientes inativos.",
+      active: false,
+    },
+    include: { bed: true, patient: true },
+  });
+  await prisma.auditLog.create({
+    data: {
+      userId: admin.id,
+      entityType: "Admission",
+      entityId: dischargedAdmission.id,
+      action: "UPDATE",
+      beforeJson: {
+        active: true,
+        dischargeDate: null,
+        patientCode: dischargedAdmission.patient.internalCode,
+        bedName: dischargedAdmission.bed.name,
+      },
+      afterJson: asJson({
+        active: false,
+        dischargeDate: dischargedAdmission.dischargeDate,
+        patientActive: false,
+        reason: "SEED_DISCHARGE_HISTORY",
+      }),
+    },
+  });
+
   const prescriptions = await Promise.all(
     admissions.slice(0, 3).map((admission, index) =>
       prisma.nutritionPrescription.create({
@@ -439,7 +480,7 @@ const main = async () => {
         entityType: "Seed",
         entityId: "demo",
         action: "CREATE",
-        afterJson: { users: 5, beds: 10, foods: 14, activeAdmissions: 5 },
+        afterJson: { users: 5, beds: 10, foods: 14, activeAdmissions: 5, inactivePatients: 1, dischargedAdmissions: 1 },
       },
       {
         userId: medico.id,

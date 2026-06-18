@@ -6,6 +6,27 @@ export const addDays = (date: Date, days: number) => {
   return next;
 };
 
+export const localDayRange = (date = new Date()) => {
+  const start = startOfLocalDay(date);
+  return { start, end: addDays(start, 1) };
+};
+
+export const localDateKey = (date: Date) => {
+  const localDate = startOfLocalDay(date);
+  const year = localDate.getFullYear();
+  const month = String(localDate.getMonth() + 1).padStart(2, "0");
+  const day = String(localDate.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+export const parseDateInputValue = (value: string | null | undefined) => {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+  return date;
+};
+
 export const formatDate = (date: Date) =>
   new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit",
@@ -22,4 +43,4 @@ export const formatDateTime = (date: Date) =>
     minute: "2-digit",
   }).format(date);
 
-export const toDateInputValue = (date: Date) => date.toISOString().slice(0, 10);
+export const toDateInputValue = (date: Date) => localDateKey(date);

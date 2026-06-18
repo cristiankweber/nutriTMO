@@ -1,3 +1,4 @@
+import { AccessRestricted } from "@/components/AccessRestricted";
 import { AppShell } from "@/components/AppShell";
 import { MealPhotos } from "@/components/MealPhotos";
 import { reviewMealAction } from "@/lib/actions";
@@ -16,7 +17,13 @@ const confidences = Object.keys(confidenceLabels) as Confidence[];
 
 export default async function ReviewPage({ searchParams }: { searchParams: Promise<{ salvo?: string }> }) {
   const user = await requireUser();
-  if (!canReviewMeals(user.role)) throw new Error("Perfil sem permissao para revisar registros de ingesta.");
+  if (!canReviewMeals(user.role)) {
+    return (
+      <AppShell user={user}>
+        <AccessRestricted description="Revisao e cancelamento de registros de ingesta ficam disponiveis apenas para admin e nutricao." />
+      </AppShell>
+    );
+  }
   const params = await searchParams;
 
   const meals = await db.meal.findMany({

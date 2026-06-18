@@ -1,3 +1,4 @@
+import { AccessRestricted } from "@/components/AccessRestricted";
 import { AppShell } from "@/components/AppShell";
 import { createPrescriptionAction, updatePrescriptionAction } from "@/lib/actions";
 import { canManagePrescriptions } from "@/lib/auth/permissions";
@@ -22,6 +23,14 @@ const inputClass = "min-h-10 w-full rounded-md border border-stone-300 bg-white 
 export default async function PrescriptionsPage({ searchParams }: { searchParams: Promise<{ salvo?: string }> }) {
   const user = await requireUser();
   const allowed = canManagePrescriptions(user.role);
+  if (!allowed) {
+    return (
+      <AppShell user={user}>
+        <AccessRestricted description="Cadastro e listagem ampla de prescricoes ficam disponiveis apenas para admin e nutricao." />
+      </AppShell>
+    );
+  }
+
   const params = await searchParams;
   const [admissions, prescriptions] = await Promise.all([
     db.admission.findMany({ where: { active: true }, include: { bed: true, patient: true }, orderBy: { bed: { name: "asc" } } }),

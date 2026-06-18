@@ -298,7 +298,29 @@ Nao consegui atualizar a workbook local porque [motivo]. Segue o registro pronto
 ## Instrucoes especificas deste projeto
 
 <!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
+### This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
+
+## Learned User Preferences
+
+- Comunicar em portugues; manter tom tecnico e objetivo alinhado aos docs do repo.
+- Pedidos vagos como "arrume o repositorio" ou "revise e debug" esperam diagnostico com evidencia de runtime antes de alterar codigo de aplicacao.
+- Nao fazer commit nem push sem pedido explicito do usuario.
+- Ao planejar conclusao do MVP, priorizar lacunas visiveis para demo (fotos, edicao de prescricao, observacoes, sodio) antes de admin/RBAC/robustez, salvo escopo diferente.
+- Validacao E2E e pedida explicitamente: subir Docker/Postgres e rodar a suite completa, nao apenas unitarios.
+- Registrar tarefas concluidas na workbook local de aprendizado quando aplicavel.
+
+## Learned Workspace Facts
+
+- NutriTMO e um MVP Next.js 16 (React 19, Prisma 7, PostgreSQL) para documentacao nutricional em unidade de TMO; gerenciador de pacotes e `npm`.
+- Repo em `~/Desktop` (iCloud) evicta `node_modules` com flag `dataless`, travando `eslint`/`tsc`/`vitest` sem saida; diagnosticar com `ls -lO node_modules/...`; corrigir com `rm -rf node_modules && npm install`; preferir clonar/mover para `~/dev`.
+- Arquivos de codigo (`src`, `prisma`, `tests`) permanecem locais; o problema recorrente e eviction do `node_modules`, nao do fonte.
+- Validacao completa: `npm run validate` (lint + typecheck + test + prisma validate + build); suíte atual ~51 unitarios + 4 e2e Playwright.
+- E2E exige Docker/Postgres (`docker compose up -d` ou container `nutritmo-postgres`); `npm run test:e2e` faz build, seed e Playwright na porta 3100; reset demo via `npm run demo:reset`.
+- Inputs `type="date"` devem usar `toDateInputValue()` de `@/lib/dates`, nunca `toISOString().slice(0, 10)` — paginas filtram por dia local do servidor.
+- Em e2e Playwright, preferir locators unicos ou texto completo do banner; strings parciais colidem com empty states.
+- Workbook de aprendizado: `outputs/codex-learning-log-table/Codex_Learning_Log.xlsx`, aba `task_log`, cabecalhos na linha 4; append via Python `openpyxl` quando ExcelJS falhar.
+- Imagens de refeicao servidas por `/api/images/[imageId]` autenticado; URLs gravadas em `Meal.preMealImageUrl`/`postMealImageUrl`.
+- Next.js 16 tem breaking changes — consultar `node_modules/next/dist/docs/` antes de codar APIs ou convencoes.

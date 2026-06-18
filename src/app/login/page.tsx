@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
-import { loginAction } from "@/lib/actions";
+import { loginAction } from "@/lib/auth/actions";
+import { defaultRouteForRole } from "@/lib/auth/permissions";
 import { getSessionUser } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ erro?: string }> }) {
   const user = await getSessionUser();
-  if (user) redirect("/dashboard");
+  if (user) redirect(defaultRouteForRole(user.role));
   const params = await searchParams;
 
   return (
@@ -35,6 +36,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         </form>
         <div className="mt-5 rounded-md bg-stone-50 p-3 text-xs leading-5 text-stone-600">
           Usuarios demo: admin, nutricao, enfermagem, medico ou auditor em <code>@nutritmo.local</code>. Senha: <code>nutritmo123</code>.
+        </div>
+        <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-950">
+          Ambiente local demonstrativo. Nao use pacientes, prontuarios ou imagens reais; acessos e exportacoes sao auditados.
         </div>
       </div>
     </main>

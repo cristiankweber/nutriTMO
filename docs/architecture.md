@@ -8,17 +8,19 @@ NutriTMO e uma aplicacao Next.js 16 App Router com server components, server act
 
 1. Usuario autentica com papel.
 2. Equipe visualiza leitos ativos no dashboard.
-3. Nutricao registra prescricao e metas.
-4. Nutricao ou enfermagem registra refeicao, fotos pre/pos e percentual ingerido, podendo usar atalhos de preparacoes e ingesta rapida.
-5. Sistema calcula kcal, CHO, proteina e lipidios por item; o resumo diario segue focado em kcal/proteina e alertas.
-6. Refeicoes com baixa confianca, foto inadequada ou pendencia ativa entram em revisao.
-7. Resumo diario e relatorio por refeicao podem ser exportados para prontuario, registrando audit log.
+3. Admin ou nutricao gerencia admissao, alta, troca de leito e reinternacao de paciente inativo.
+4. Nutricao registra prescricao e metas.
+5. Nutricao ou enfermagem registra refeicao, fotos pre/pos e percentual ingerido, podendo usar atalhos de preparacoes e ingesta rapida.
+6. Sistema calcula kcal, CHO, proteina e lipidios por item; o resumo diario segue focado em kcal/proteina e alertas.
+7. Refeicoes com baixa confianca, foto inadequada ou pendencia ativa entram em revisao.
+8. Resumo diario e relatorio por refeicao podem ser exportados para prontuario, registrando audit log.
 
 ## Fluxo de dados
 
 - Formularios chamam server actions em `src/lib/actions.ts`.
 - Actions validam papel do usuario autenticado.
 - Mutacoes revalidam as telas afetadas e redirecionam com feedback curto quando o fluxo precisa confirmar a acao.
+- Mutacoes de admissao validam leito ativo/livre, paciente sem admissao ativa e registram troca de leito, alta e readmissao em `AuditLog`.
 - Calculos e agrupamento por refeicao ficam em `src/lib/clinical/calculations.ts`.
 - Persistencia usa Prisma Client gerado em `src/generated/prisma`.
 - Uploads usam `src/lib/storage/local.ts`, com filenames UUID.

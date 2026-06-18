@@ -1,19 +1,34 @@
 import Link from "next/link";
 import { ClipboardPlus } from "lucide-react";
+import { AccessRestricted } from "@/components/AccessRestricted";
 import { AppShell } from "@/components/AppShell";
 import { DashboardBedGrid, type DashboardBedCardData } from "@/components/DashboardBedGrid";
 import { MetricCard } from "@/components/MetricCard";
+import { canRegisterMeals, canViewClinicalRecord, canViewDashboard } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
 import { buildMealNutrientReport } from "@/lib/clinical/calculations";
-import { startOfLocalDay } from "@/lib/dates";
+import { localDayRange } from "@/lib/dates";
 import { db } from "@/lib/db";
 import { isMealOperationallyIncomplete, isMealPendingReview, isNutritionAlertLevel } from "@/lib/review/rules";
+import { getDisplayTransplantDay } from "@/lib/transplantDay";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const today = startOfLocalDay();
+  if (!canViewDashboard(user.role)) {
+    return (
+      <AppShell user={user}>
+        <AccessRestricted
+          description="O dashboard contem dados clinicos operacionais e fica disponivel apenas para perfis assistenciais autorizados."
+          href="/audit"
+          cta="Ir para Auditoria"
+        />
+      </AppShell>
+    );
+  }
+
+  const { start: today, end: tomorrow } = localDayRange();
   const [beds, admissions, summaries] = await Promise.all([
     db.bed.findMany({ orderBy: { name: "asc" } }),
     db.admission.findMany({
@@ -21,8 +36,8 @@ export default async function DashboardPage() {
       include: {
         bed: true,
         patient: true,
-        prescriptions: { orderBy: { date: "desc" }, take: 1 },
-        meals: { where: { date: { gte: today } }, include: { items: true } },
+        prescriptions: { where: { date: { lte: today } }, orderBy: { date: "desc" }, take: 1 },
+        meals: { where: { date: { gte: today, lt: tomorrow } }, include: { items: true } },
       },
       orderBy: { bed: { name: "asc" } },
     }),
@@ -50,7 +65,7 @@ export default async function DashboardPage() {
       bedName: bed.name,
       admissionId: admission?.id ?? null,
       patientCode: admission?.patient.internalCode ?? null,
-      transplantDay: admission?.transplantDay ?? null,
+      transplantDay: admission ? getDisplayTransplantDay(admission.transplantDay, admission.admissionDate, today) : null,
       dietType: prescription?.dietType ?? null,
       summary: summary
         ? {
@@ -83,9 +98,11 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold">Dashboard da unidade</h1>
           <p className="mt-1 text-sm text-stone-600">Leitos TMO, ingesta registrada do dia e pendencias de revisao humana.</p>
         </div>
-        <Link href="/meals/new" className="inline-flex items-center gap-2 rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">
-          <ClipboardPlus className="h-4 w-4" /> Registrar ingesta
-        </Link>
+        {canRegisterMeals(user.role) ? (
+          <Link href="/meals/new" className="inline-flex items-center gap-2 rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">
+            <ClipboardPlus className="h-4 w-4" /> Registrar ingesta
+          </Link>
+        ) : null}
       </div>
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -96,7 +113,7 @@ export default async function DashboardPage() {
         <MetricCard label="Registros hoje" value={`${admissions.reduce((sum, admission) => sum + admission.meals.length, 0)}`} detail="Ingesta oral e suplementos" />
       </div>
 
-      <DashboardBedGrid cards={bedCards} />
+      <DashboardBedGrid cards={bedCards} canOpenClinicalRecord={canViewClinicalRecord(user.role)} />
     </AppShell>
   );
 }

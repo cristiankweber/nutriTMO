@@ -7,6 +7,7 @@ Este projeto e local e demonstrativo. Nao usar em producao assistencial sem vali
 ## Escopo do MVP
 
 - Registro de paciente/leito e admissao pseudonimizados.
+- Operacao local de leitos com filtros de admissoes ativas, alertas, sem prescricao, leitos livres, altas e pacientes inativos.
 - Prescricao nutricional com metas de kcal e proteina.
 - Base alimentar de preparacoes de referencia.
 - Registro de ingesta com itens servidos, fotos pre/pos e percentual ingerido por item, incluindo kcal, CHO, proteina e lipidios.
@@ -91,6 +92,14 @@ npm run prisma:seed
 
 O seed e destrutivo para os dados demo: ele limpa as tabelas do MVP e recria usuarios, leitos, pacientes ficticios, prescricoes, base alimentar, registros de ingesta, imagens ficticias e logs. Use apenas em ambiente local/demo.
 
+Para preparar uma demo limpa com migrations aplicadas, seed e verificacao dos cenarios esperados, use:
+
+```bash
+npm run demo:reset
+```
+
+O reset deve terminar com 5 admissoes ativas, 1 paciente inativo com alta historica, 5 leitos livres, ao menos 1 pendencia de revisao, 1 refeicao cancelada, auditoria de revisao/exportacao e imagens demo locais.
+
 ## Iniciar app
 
 ```bash
@@ -129,9 +138,13 @@ O Studio abre em uma porta local informada pelo Prisma. Use apenas para inspecio
 npm run lint
 npm run typecheck
 npm test
+npm run test:e2e
 npm run prisma:validate
 npm run build
 npm run validate
+npm run demo:reset
+npm run demo:verify
+npm run demo:pilot
 npm run prisma:migrate
 npm run prisma:seed
 npm run prisma:studio
@@ -139,13 +152,36 @@ npm run prisma:studio
 
 `npm run validate` executa lint, typecheck, testes, validacao Prisma e build.
 
+`npm run demo:reset` aplica migrations ja versionadas com `prisma migrate deploy`, recria o seed demo e valida a estrutura esperada para apresentacao.
+
+`npm run demo:pilot` executa `demo:reset` e `validate`; use antes de apresentar o MVP como piloto local.
+
+`npm run test:e2e` executa build, recria o seed demonstravel e roda Playwright em `http://127.0.0.1:3100`. O comando e destrutivo para os dados demo porque chama `npm run prisma:seed`; use apenas em ambiente local/demo.
+
+Por padrao, os testes E2E usam o canal local do Google Chrome. Para usar o navegador gerenciado pelo Playwright depois de instalar browsers, rode:
+
+```bash
+PLAYWRIGHT_BROWSER_CHANNEL=bundled npm run test:e2e
+```
+
 ## Storage local de imagens
 
 - Uploads ficam em `IMAGE_STORAGE_DIR`, por padrao `./storage/images`.
+- A retencao local e configurada por `IMAGE_RETENTION_DAYS`, por padrao 30 dias.
+- A tela `Governanca` permite visualizar imagens vencidas e executar limpeza local auditada.
 - Arquivos reais de upload sao ignorados pelo Git.
 - O seed gera imagens ficticias locais para demonstracao.
 - Nomes de arquivos salvos por upload usam UUID e nao incluem identificadores do paciente.
-- O endpoint `/api/images/[imageId]` exige usuario autenticado, usa runtime Node.js e retorna 404 controlado quando o arquivo local nao existe.
+- O endpoint `/api/images/[imageId]` exige usuario clinico autorizado, usa runtime Node.js, serve apenas arquivos dentro de `IMAGE_STORAGE_DIR` e retorna 404 controlado quando o arquivo local nao existe.
+
+## Governanca e seguranca
+
+- Auditor nao acessa dashboard, detalhe clinico, relatorios nem imagens; fica restrito a `Auditoria` e `Governanca`.
+- Relatorios e exportacao local por paciente ficam restritos a admin, nutricao e medico.
+- Detalhe clinico fica restrito a admin, nutricao, enfermagem e medico.
+- Sessao usa cookie HttpOnly, SameSite Strict, Secure em producao, prioridade alta e validade de 8 horas.
+- O payload da sessao guarda apenas id, nome e perfil do usuario.
+- Antes de piloto real, revisar RIPD, base legal, seguranca institucional, politica de backup/criptografia, retencao, fluxo de incidente e responsabilidades LGPD.
 
 ## Fluxo de revisao humana
 
@@ -157,9 +193,19 @@ npm run prisma:studio
 - Cada revisao gera `AuditLog` com antes/depois, motivos, observacao e alteracoes de percentual por item.
 - Cancelamento troca status para `CANCELADA`, nao deleta dados e gera `AuditLog`.
 
+## Operacao de leitos e admissoes
+
+- A tela `Pacientes` permite filtrar admissoes ativas, alertas nutricionais, admissoes sem prescricao, leitos livres, altas, pacientes inativos e a visao completa.
+- A troca de leito valida destino ativo e livre, atualiza a admissao sem criar novo paciente e registra `AuditLog` com leito anterior e novo.
+- A alta encerra a `Admission`; se o paciente nao mantiver outra admissao ativa, `Patient.active` passa para `false`.
+- Pacientes inativos podem ser reinternados pela mesma tela, preservando `internalCode` pseudonimizado e criando nova `Admission`.
+
 ## Relatorio por refeicao
 
 - A tela `Relatorios` complementa o resumo diario com tabela por refeicao: kcal, `% kcal do dia`, CHO, PTN, LIP e observacoes.
+- A tela `Relatorios` e o detalhe da admissao exportam o relatorio por paciente em XLSX/PDF local, sem Google Sheets.
+- A tela `Auditoria` exporta os ultimos eventos em XLSX/PDF local e cada download gera `AuditLog` com acao `EXPORT`.
+- O XLSX inclui abas separadas para resumo, relatorio por refeicao, itens registrados e metadados; o export de auditoria inclui JSON em colunas dedicadas.
 - Refeicoes canceladas nao entram no calculo.
 - Refeicoes revisadas usam os valores persistidos apos revisao.
 - Refeicoes pendentes aparecem sinalizadas como incompletas, sem sair automaticamente do total.
@@ -171,7 +217,7 @@ Nao ha IA visual real neste MVP. `src/lib/meal-estimation` e um placeholder/mock
 
 ## Checklist de demo
 
-Use `docs/demo-checklist.md` para uma demonstracao de 10 a 15 minutos.
+Use `docs/demo-checklist.md` para reset, preflight e demonstracao de 10 a 15 minutos.
 
 Use `docs/manual-validation-checklist.md` para validacao manual completa.
 

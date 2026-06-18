@@ -1,18 +1,20 @@
 import Link from "next/link";
-import { Camera, ClipboardPlus } from "lucide-react";
+import { Camera, ClipboardPlus, FileSpreadsheet, FileText } from "lucide-react";
+import { AccessRestricted } from "@/components/AccessRestricted";
 import { AppShell } from "@/components/AppShell";
 import { mealReportLabels } from "@/components/MealNutrientReport";
 import { MealPhotos } from "@/components/MealPhotos";
 import { NutritionProgress } from "@/components/NutritionProgress";
 import { StatusBadge } from "@/components/StatusBadge";
 import { cancelMealAction } from "@/lib/actions";
-import { canReviewMeals } from "@/lib/auth/permissions";
+import { canExportPatientReports, canRegisterMeals, canReviewMeals, canViewClinicalRecord } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
 import { buildMealNutrientReport } from "@/lib/clinical/calculations";
-import { formatDate, formatDateTime, startOfLocalDay } from "@/lib/dates";
+import { formatDate, formatDateTime, localDayRange, toDateInputValue } from "@/lib/dates";
 import { db } from "@/lib/db";
 import { mealStatusLabels, mealTypeLabels, transplantTypeLabels } from "@/lib/labels";
 import { getReviewMetadataFromLog, reviewReasonLabels } from "@/lib/review/rules";
+import { getDisplayTransplantDay } from "@/lib/transplantDay";
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +36,21 @@ export default async function PatientAdmissionPage({
   searchParams: Promise<{ admissao?: string; cancelada?: string; refeicao?: string }>;
 }) {
   const user = await requireUser();
+  if (!canViewClinicalRecord(user.role)) {
+    return (
+      <AppShell user={user}>
+        <AccessRestricted
+          description="O detalhe da admissao contem informacoes clinicas e imagens locais. Use Auditoria ou Governanca para revisao sem acesso assistencial."
+          href="/audit"
+          cta="Ir para Auditoria"
+        />
+      </AppShell>
+    );
+  }
+
   const { admissionId } = await params;
   const feedback = await searchParams;
-  const today = startOfLocalDay();
+  const { start: today, end: tomorrow } = localDayRange();
   const admission = await db.admission.findUnique({
     where: { id: admissionId },
     include: {
@@ -45,7 +59,7 @@ export default async function PatientAdmissionPage({
       prescriptions: { orderBy: { date: "desc" }, include: { createdBy: true, reviewedBy: true } },
       summaries: { orderBy: { date: "desc" }, take: 14 },
       meals: {
-        where: { date: { gte: today } },
+        where: { date: { gte: today, lt: tomorrow } },
         include: { items: { include: { foodItem: true } }, images: true, createdBy: true, reviewedBy: true },
         orderBy: { createdAt: "desc" },
       },
@@ -64,10 +78,14 @@ export default async function PatientAdmissionPage({
       : [];
   const latestReviewLogByMeal = new Map(mealLogs.filter((log) => log.action === "REVIEW").map((log) => [log.entityId, log]));
   const latestCancellationLogByMeal = new Map(mealLogs.filter(isCancellationLog).map((log) => [log.entityId, log]));
-  const currentPrescription = admission.prescriptions[0];
+  const currentPrescription = admission.prescriptions.find((prescription) => prescription.date.getTime() <= today.getTime());
   const todaySummary = admission.summaries.find((summary) => summary.date.getTime() === today.getTime());
   const mealNutrientReport = buildMealNutrientReport(admission.meals);
   const canCancelMeal = canReviewMeals(user.role);
+  const canRegisterMeal = canRegisterMeals(user.role);
+  const canExportReport = canExportPatientReports(user.role);
+  const displayTransplantDay = getDisplayTransplantDay(admission.transplantDay, admission.admissionDate, today) ?? "D+ nao informado";
+  const patientReportExportHref = `/api/exports/patient-report?admissionId=${encodeURIComponent(admissionId)}&date=${encodeURIComponent(toDateInputValue(today))}`;
 
   return (
     <AppShell user={user}>
@@ -77,12 +95,32 @@ export default async function PatientAdmissionPage({
             {admission.bed.name} · {admission.patient.internalCode}
           </h1>
           <p className="mt-1 text-sm text-stone-600">
-            {transplantTypeLabels[admission.transplantType]} · {admission.transplantDay ?? "D+ nao informado"} · admissao demo em {formatDate(admission.admissionDate)}
+            {transplantTypeLabels[admission.transplantType]} · {displayTransplantDay} · admissao demo em {formatDate(admission.admissionDate)}
           </p>
         </div>
-        <Link href="/meals/new" className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 sm:w-auto">
-          <ClipboardPlus className="h-4 w-4" /> Registrar ingesta
-        </Link>
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+          {canExportReport ? (
+            <>
+              <a
+                href={`${patientReportExportHref}&format=xlsx`}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-emerald-700 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 sm:flex-none"
+              >
+                <FileSpreadsheet className="h-4 w-4" /> XLSX
+              </a>
+              <a
+                href={`${patientReportExportHref}&format=pdf`}
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 transition-colors hover:bg-stone-50 sm:flex-none"
+              >
+                <FileText className="h-4 w-4" /> PDF
+              </a>
+            </>
+          ) : null}
+          {canRegisterMeal ? (
+            <Link href="/meals/new" className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-emerald-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-900 sm:w-auto">
+              <ClipboardPlus className="h-4 w-4" /> Registrar ingesta
+            </Link>
+          ) : null}
+        </div>
       </div>
 
       {feedback.admissao ? (

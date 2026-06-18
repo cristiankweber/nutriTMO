@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FileSpreadsheet, FileText } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { canViewAudit } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
@@ -43,9 +44,25 @@ export default async function AuditPage() {
 
   return (
     <AppShell user={user}>
-      <div className="mb-5">
-        <h1 className="text-2xl font-semibold">Auditoria</h1>
-        <p className="mt-1 text-sm text-stone-600">Historico de login, exportacoes e alteracoes assistenciais relevantes.</p>
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Auditoria</h1>
+          <p className="mt-1 text-sm text-stone-600">Historico de login, exportacoes e alteracoes assistenciais relevantes.</p>
+        </div>
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+          <a
+            href="/api/exports/audit?format=xlsx"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-emerald-700 bg-white px-3 py-2 text-sm font-semibold text-emerald-900 transition-colors hover:bg-emerald-50 sm:flex-none"
+          >
+            <FileSpreadsheet className="h-4 w-4" /> Exportar auditoria XLSX
+          </a>
+          <a
+            href="/api/exports/audit?format=pdf"
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-semibold text-stone-800 transition-colors hover:bg-stone-50 sm:flex-none"
+          >
+            <FileText className="h-4 w-4" /> Exportar auditoria PDF
+          </a>
+        </div>
       </div>
 
       {logs.length === 0 ? (

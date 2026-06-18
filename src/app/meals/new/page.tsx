@@ -1,18 +1,26 @@
+import { AccessRestricted } from "@/components/AccessRestricted";
 import { AppShell } from "@/components/AppShell";
 import { MealRegistrationForm } from "@/components/MealRegistrationForm";
 import { createMealAction } from "@/lib/actions";
 import { canRegisterMeals } from "@/lib/auth/permissions";
 import { requireUser } from "@/lib/auth/session";
+import { startOfLocalDay } from "@/lib/dates";
 import { db } from "@/lib/db";
+import { getDisplayTransplantDay } from "@/lib/transplantDay";
 
 export const dynamic = "force-dynamic";
 
 export default async function NewMealPage() {
   const user = await requireUser();
   if (!canRegisterMeals(user.role)) {
-    throw new Error("Perfil sem permissao para registrar ingesta.");
+    return (
+      <AppShell user={user}>
+        <AccessRestricted description="Registro de ingesta fica disponivel apenas para admin, nutricao e enfermagem." />
+      </AppShell>
+    );
   }
 
+  const today = startOfLocalDay();
   const [admissions, foods] = await Promise.all([
     db.admission.findMany({ where: { active: true }, include: { bed: true, patient: true }, orderBy: { bed: { name: "asc" } } }),
     db.foodItem.findMany({ where: { active: true }, orderBy: { name: "asc" } }),
@@ -39,7 +47,7 @@ export default async function NewMealPage() {
             id: admission.id,
             bed: admission.bed.name,
             patientCode: admission.patient.internalCode,
-            transplantDay: admission.transplantDay,
+            transplantDay: getDisplayTransplantDay(admission.transplantDay, admission.admissionDate, today),
           }))}
           foods={foods.map((food) => ({
             id: food.id,

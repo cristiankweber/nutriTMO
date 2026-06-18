@@ -1,3 +1,4 @@
+import { AccessRestricted } from "@/components/AccessRestricted";
 import { AppShell } from "@/components/AppShell";
 import { createFoodItemAction, updateFoodItemAction } from "@/lib/actions";
 import { canManageMenu } from "@/lib/auth/permissions";
@@ -33,6 +34,14 @@ const formatNumber = (value: number | null | undefined, suffix = "") => {
 export default async function MenuPage({ searchParams }: { searchParams: Promise<{ salvo?: string }> }) {
   const user = await requireUser();
   const allowed = canManageMenu(user.role);
+  if (!allowed) {
+    return (
+      <AppShell user={user}>
+        <AccessRestricted description="A base alimentar de referencia fica disponivel apenas para admin e nutricao." />
+      </AppShell>
+    );
+  }
+
   const params = await searchParams;
   const foods = await db.foodItem.findMany({ orderBy: [{ active: "desc" }, { name: "asc" }] });
 

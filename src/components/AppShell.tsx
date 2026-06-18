@@ -1,7 +1,18 @@
 import Link from "next/link";
 import { Activity, ClipboardList, FileText, ListChecks, LogOut, ScrollText, ShieldCheck, UserRound, Utensils } from "lucide-react";
-import { logoutAction } from "@/lib/actions";
-import { canManageMenu, canManagePatients, canManagePrescriptions, canRegisterMeals, canReviewMeals, canViewAudit } from "@/lib/auth/permissions";
+import { logoutAction } from "@/lib/auth/actions";
+import {
+  canManageMenu,
+  canManagePatients,
+  canManagePrescriptions,
+  canRegisterMeals,
+  canReviewMeals,
+  canViewAudit,
+  canViewDashboard,
+  canViewGovernance,
+  canViewReports,
+  defaultRouteForRole,
+} from "@/lib/auth/permissions";
 import type { SessionUser } from "@/lib/auth/session";
 import { roleLabels } from "@/lib/labels";
 
@@ -17,12 +28,12 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
   {
     title: "Atendimento",
     items: [
-      { href: "/dashboard", label: "Unidade", description: "Leitos e alertas", icon: Activity, show: () => true },
+      { href: "/dashboard", label: "Unidade", description: "Leitos e alertas", icon: Activity, show: canViewDashboard },
       { href: "/patients", label: "Pacientes", description: "Admissao e historico", icon: UserRound, show: canManagePatients },
       { href: "/prescriptions", label: "Prescricao", description: "Metas do paciente", icon: ClipboardList, show: canManagePrescriptions },
       { href: "/meals/new", label: "Registrar ingesta", description: "Consumo real", icon: ListChecks, show: canRegisterMeals },
       { href: "/review", label: "Revisao", description: "Qualidade do registro", icon: ShieldCheck, show: canReviewMeals },
-      { href: "/reports", label: "Relatorios", description: "Texto para prontuario", icon: FileText, show: () => true },
+      { href: "/reports", label: "Relatorios", description: "Texto para prontuario", icon: FileText, show: canViewReports },
     ],
   },
   {
@@ -35,6 +46,7 @@ const navSections: Array<{ title: string; items: NavItem[] }> = [
     title: "Governanca",
     items: [
       { href: "/audit", label: "Auditoria", description: "Logs e rastreio", icon: ScrollText, show: canViewAudit },
+      { href: "/governance", label: "Governanca", description: "Perfis e LGPD", icon: ShieldCheck, show: canViewGovernance },
     ],
   },
 ];
@@ -48,7 +60,7 @@ export function AppShell({ user, children }: { user: SessionUser; children: Reac
     <div className="min-h-screen bg-[#f6f7f5] text-stone-950">
       <header className="sticky top-0 z-20 border-b border-stone-200 bg-white/95 shadow-sm shadow-stone-200/40 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <Link href="/dashboard" className="flex items-center gap-3">
+          <Link href={defaultRouteForRole(user.role)} className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-md bg-emerald-800 text-sm font-bold tracking-wide text-white shadow-sm shadow-emerald-950/20">
               NT
             </span>

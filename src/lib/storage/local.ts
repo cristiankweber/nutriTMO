@@ -27,6 +27,12 @@ export const getImageStorageDir = () => {
   return path.join(/* turbopackIgnore: true */ process.cwd(), configured ?? "storage/images");
 };
 
+export const isPathInsideImageStorageDir = (filePath: string) => {
+  const storageDir = getImageStorageDir();
+  const relativePath = path.relative(storageDir, filePath);
+  return relativePath !== "" && !relativePath.startsWith("..") && !path.isAbsolute(relativePath);
+};
+
 export const storeLocalImage = async (file: File): Promise<StoredImage | null> => {
   if (!file || file.size === 0) return null;
   if (!allowedMimeTypes.has(file.type)) {

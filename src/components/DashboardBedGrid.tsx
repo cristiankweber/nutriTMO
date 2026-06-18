@@ -50,7 +50,13 @@ const filterLabels: Record<DashboardFilter, string> = {
   livres: "Livres",
 };
 
-export function DashboardBedGrid({ cards }: { cards: DashboardBedCardData[] }) {
+export function DashboardBedGrid({
+  cards,
+  canOpenClinicalRecord,
+}: {
+  cards: DashboardBedCardData[];
+  canOpenClinicalRecord: boolean;
+}) {
   const [activeFilter, setActiveFilter] = useState<DashboardFilter>("todos");
 
   const counts = useMemo(
@@ -111,23 +117,31 @@ export function DashboardBedGrid({ cards }: { cards: DashboardBedCardData[] }) {
 
       <div className="grid gap-3 xl:grid-cols-2">
         {visibleCards.map((card) => (
-          <DashboardBedCard key={card.bedId} card={card} />
+          <DashboardBedCard key={card.bedId} card={card} canOpenClinicalRecord={canOpenClinicalRecord} />
         ))}
       </div>
     </section>
   );
 }
 
-function DashboardBedCard({ card }: { card: DashboardBedCardData }) {
+function DashboardBedCard({
+  card,
+  canOpenClinicalRecord,
+}: {
+  card: DashboardBedCardData;
+  canOpenClinicalRecord: boolean;
+}) {
   return (
     <div className="rounded-md border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/50">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-xs font-semibold uppercase text-emerald-900">{card.bedName}</div>
-          {card.admissionId && card.patientCode ? (
+          {card.admissionId && card.patientCode && canOpenClinicalRecord ? (
             <Link href={`/patients/${card.admissionId}`} className="mt-1 block text-xl font-semibold leading-tight hover:text-emerald-900">
               {card.patientCode}
             </Link>
+          ) : card.admissionId && card.patientCode ? (
+            <div className="mt-1 text-xl font-semibold leading-tight text-stone-800">{card.patientCode}</div>
           ) : (
             <div className="mt-1 text-xl font-semibold leading-tight text-stone-400">Leito livre</div>
           )}

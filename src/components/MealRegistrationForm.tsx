@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { Confidence, ImageQuality, MealType } from "@/generated/prisma/enums";
 import { consumedPercentToValue, type ConsumedPercentKey } from "@/lib/clinical/calculations";
+import { toDateInputValue } from "@/lib/dates";
 import { confidenceLabels, consumedPercentLabels, imageQualityLabels, mealTypeLabels } from "@/lib/labels";
 
 type AdmissionOption = {
@@ -189,7 +190,7 @@ export function MealRegistrationForm({
         </label>
         <label className="space-y-1">
           <span className="text-sm font-medium">Data</span>
-          <input name="date" type="date" className="w-full rounded-md border border-stone-300 px-3 py-2" defaultValue={new Date().toISOString().slice(0, 10)} required />
+          <input name="date" type="date" className="w-full rounded-md border border-stone-300 px-3 py-2" defaultValue={toDateInputValue(new Date())} required />
         </label>
         <label className="space-y-1">
           <span className="text-sm font-medium">Refeicao</span>
@@ -234,6 +235,9 @@ export function MealRegistrationForm({
         <label className="space-y-2 rounded-md border border-stone-200 bg-stone-50/70 p-3">
           <span className="block text-sm font-medium">Foto pre-refeicao</span>
           <input name="preMealImage" type="file" accept="image/*" capture="environment" className="w-full text-sm" />
+          <span className="block text-xs leading-5 text-stone-600">
+            Evite rosto, pulseira, etiqueta ou prontuario visivel. Use apenas imagem demo/local nesta fase.
+          </span>
           <span className="flex items-center gap-2 text-xs text-stone-600">
             <input name="preMealImageIdentifier" type="checkbox" className="h-4 w-4" /> Possivel identificador visivel
           </span>
@@ -241,6 +245,9 @@ export function MealRegistrationForm({
         <label className="space-y-2 rounded-md border border-stone-200 bg-stone-50/70 p-3">
           <span className="block text-sm font-medium">Foto pos-refeicao</span>
           <input name="postMealImage" type="file" accept="image/*" capture="environment" className="w-full text-sm" />
+          <span className="block text-xs leading-5 text-stone-600">
+            Evite rosto, pulseira, etiqueta ou prontuario visivel. Use apenas imagem demo/local nesta fase.
+          </span>
           <span className="flex items-center gap-2 text-xs text-stone-600">
             <input name="postMealImageIdentifier" type="checkbox" className="h-4 w-4" /> Possivel identificador visivel
           </span>

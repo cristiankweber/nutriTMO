@@ -1,30 +1,6 @@
-import type { MealNutrientReport as MealNutrientReportData, MealNutrientReportRow } from "@/lib/clinical/calculations";
+import type { MealNutrientReport as MealNutrientReportData } from "@/lib/clinical/calculations";
+import { buildMealObservationLabels, mealReportLabels } from "@/lib/reporting/nutritionReport";
 import { cn } from "@/lib/ui/cn";
-
-const mealReportLabels: Record<MealNutrientReportRow["mealType"], string> = {
-  CAFE_MANHA: "Cafe da manha",
-  LANCHE_MANHA: "Lanche da manha",
-  ALMOCO: "Almoco",
-  LANCHE_TARDE: "Lanche da tarde",
-  JANTAR: "Janta",
-  CEIA: "Ceia",
-  SUPLEMENTO: "Suplementos",
-  OUTRO: "Outros",
-  TOTAL: "Total",
-};
-
-const observationLabels = (row: MealNutrientReportRow) => {
-  if (row.mealType === "TOTAL") return ["total diario"];
-  const observations: string[] = [];
-  if (!row.hasRecord) observations.push("refeicao sem registro");
-  if (row.isPending) observations.push("refeicao pendente");
-  if (row.isReviewed) observations.push("refeicao revisada");
-  if (row.isLowestKcal) observations.push("menor kcal do dia");
-  if (row.isLowestProtein) observations.push("menor proteina do dia");
-  if (row.isHighestKcal) observations.push("maior aporte calorico");
-  if (row.isHighestProtein) observations.push("maior aporte proteico");
-  return observations.length > 0 ? observations : ["registro completo"];
-};
 
 const formatNumber = (value: number, precision = 0) => value.toFixed(precision);
 
@@ -66,7 +42,7 @@ export function MealNutrientReport({ report }: { report: MealNutrientReportData 
               <td className="px-3 py-3 text-right">{formatNumber(row.totalConsumedFat, 1)}</td>
               <td className="px-4 py-3">
                 <div className="flex flex-wrap gap-1.5">
-                  {observationLabels(row).map((observation) => (
+                  {buildMealObservationLabels(row).map((observation) => (
                     <span
                       key={observation}
                       className={cn(
